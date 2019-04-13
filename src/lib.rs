@@ -24,3 +24,82 @@
 #![deny(unsafe_code, missing_docs)]
 #![no_std]
 
+extern crate embedded_hal as hal;
+
+/// All possible errors in this crate
+#[derive(Debug)]
+pub enum Error<E> {
+    /// I²C bus error
+    I2C(E),
+}
+
+/// Possible slave addresses
+#[derive(Debug, Clone, Copy)]
+pub enum SlaveAddr {
+    /// Default slave address
+    Default,
+    /// Alternative slave address providing bit value for A0
+    Alternative(bool),
+}
+
+impl Default for SlaveAddr {
+    /// Default slave address
+    fn default() -> Self {
+        SlaveAddr::Default
+    }
+}
+
+impl SlaveAddr {
+    fn addr(self, default: u8) -> u8 {
+        match self {
+            SlaveAddr::Default => default,
+            SlaveAddr::Alternative(a0) => default | a0 as u8,
+        }
+    }
+}
+
+const DEVICE_BASE_ADDRESS: u8 = 0xE;
+
+/// KXCJ9 device driver.
+#[derive(Debug)]
+pub struct Kxcj9<I2C> {
+    /// The concrete I²C device implementation.
+    i2c: I2C,
+    address: u8,
+}
+
+impl<I2C, E> Kxcj9<I2C>
+where
+    I2C: hal::blocking::i2c::Write<Error = E>,
+{
+    /// Create new instance of the KXCJ9 device.
+    pub fn new(i2c: I2C, address: SlaveAddr) -> Self {
+        Kxcj9 {
+            i2c,
+            address: address.addr(DEVICE_BASE_ADDRESS),
+        }
+    }
+
+    /// Destroy driver instance, return I²C bus instance.
+    pub fn destroy(self) -> I2C {
+        self.i2c
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use DEVICE_BASE_ADDRESS as BASE_ADDR;
+
+    #[test]
+    fn can_get_default_address() {
+        let addr = SlaveAddr::default();
+        assert_eq!(BASE_ADDR, addr.addr(BASE_ADDR));
+    }
+
+    #[test]
+    fn can_generate_alternative_addresses() {
+        assert_eq!(0b000_1110, SlaveAddr::Alternative(false).addr(BASE_ADDR));
+        assert_eq!(0b000_1111, SlaveAddr::Alternative(true).addr(BASE_ADDR));
+    }
+}

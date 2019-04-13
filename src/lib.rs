@@ -60,6 +60,11 @@ impl SlaveAddr {
 
 const DEVICE_BASE_ADDRESS: u8 = 0xE;
 
+struct Register;
+impl Register {
+    const WHO_AM_I: u8 = 0x0F;
+}
+
 /// KXCJ9 device driver.
 #[derive(Debug)]
 pub struct Kxcj9<I2C> {
@@ -70,7 +75,7 @@ pub struct Kxcj9<I2C> {
 
 impl<I2C, E> Kxcj9<I2C>
 where
-    I2C: hal::blocking::i2c::Write<Error = E>,
+    I2C: hal::blocking::i2c::WriteRead<Error = E>,
 {
     /// Create new instance of the KXCJ9 device.
     pub fn new(i2c: I2C, address: SlaveAddr) -> Self {
@@ -83,6 +88,15 @@ where
     /// Destroy driver instance, return I²C bus instance.
     pub fn destroy(self) -> I2C {
         self.i2c
+    }
+
+    /// Read the `WHO_AM_I` register. This should return `0xF`.
+    pub fn who_am_i(&mut self) -> Result<u8, Error<E>> {
+        let mut data = [0];
+        self.i2c
+            .write_read(self.address, &[Register::WHO_AM_I], &mut data)
+            .map_err(Error::I2C)?;
+        Ok(data[0])
     }
 }
 

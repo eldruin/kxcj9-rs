@@ -25,6 +25,7 @@
 #![no_std]
 
 extern crate embedded_hal as hal;
+use core::marker::PhantomData;
 
 /// All possible errors in this crate
 #[derive(Debug)]
@@ -131,30 +132,59 @@ impl Config {
     }
 }
 
+#[doc(hidden)]
+pub mod ic {
+    pub struct Kxcj9_1008(());
+    pub struct Kxcj9_1018(());
+}
+
 /// KXCJ9 device driver.
 #[derive(Debug)]
-pub struct Kxcj9<I2C> {
+pub struct Kxcj9<I2C, IC> {
     /// The concrete I²C device implementation.
     i2c: I2C,
     address: u8,
     ctrl1: Config,
     data_ctrl: u8,
+    _ic: PhantomData<IC>,
 }
 
-impl<I2C, E> Kxcj9<I2C>
+impl<I2C, E> Kxcj9<I2C, ic::Kxcj9_1008>
 where
     I2C: hal::blocking::i2c::WriteRead<Error = E> + hal::blocking::i2c::Write<Error = E>,
 {
-    /// Create new instance of the KXCJ9 device.
-    pub fn new(i2c: I2C, address: SlaveAddr) -> Self {
+    /// Create new instance of the KXCJ9-1008 device.
+    pub fn new_1008(i2c: I2C, address: SlaveAddr) -> Self {
         Kxcj9 {
             i2c,
             address: address.addr(DEVICE_BASE_ADDRESS),
             ctrl1: Config::default(),
             data_ctrl: 0x02,
+            _ic: PhantomData,
         }
     }
+}
 
+impl<I2C, E> Kxcj9<I2C, ic::Kxcj9_1018>
+where
+    I2C: hal::blocking::i2c::WriteRead<Error = E> + hal::blocking::i2c::Write<Error = E>,
+{
+    /// Create new instance of the KXCJ9-1018 device.
+    pub fn new_1018(i2c: I2C, address: SlaveAddr) -> Self {
+        Kxcj9 {
+            i2c,
+            address: address.addr(DEVICE_BASE_ADDRESS),
+            ctrl1: Config::default(),
+            data_ctrl: 0x02,
+            _ic: PhantomData,
+        }
+    }
+}
+
+impl<I2C, E, IC> Kxcj9<I2C, IC>
+where
+    I2C: hal::blocking::i2c::WriteRead<Error = E> + hal::blocking::i2c::Write<Error = E>,
+{
     /// Destroy driver instance, return I²C bus instance.
     pub fn destroy(self) -> I2C {
         self.i2c
@@ -255,6 +285,14 @@ where
             .write(self.address, &[reg_addr, value])
             .map_err(Error::I2C)
     }
+}
+
+mod private {
+    use super::ic;
+    pub trait Sealed {}
+
+    impl Sealed for ic::Kxcj9_1008 {}
+    impl Sealed for ic::Kxcj9_1018 {}
 }
 
 #[cfg(test)]

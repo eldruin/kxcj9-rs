@@ -1,7 +1,7 @@
 extern crate embedded_hal_mock as hal;
 extern crate kxcj9;
 use hal::i2c::{Mock as I2cMock, Transaction as I2cTrans};
-use kxcj9::{Kxcj9, OutputDataRate, Resolution, SlaveAddr};
+use kxcj9::{ic, Kxcj9, OutputDataRate, Resolution, SlaveAddr};
 
 const DEV_ADDR: u8 = 0xE;
 
@@ -18,11 +18,11 @@ impl BitFlags {
     const RES: u8 = 0b0100_0000;
 }
 
-pub fn new(transactions: &[I2cTrans]) -> Kxcj9<I2cMock> {
-    Kxcj9::new(I2cMock::new(&transactions), SlaveAddr::default())
+pub fn new(transactions: &[I2cTrans]) -> Kxcj9<I2cMock, ic::Kxcj9_1018> {
+    Kxcj9::new_1018(I2cMock::new(&transactions), SlaveAddr::default())
 }
 
-pub fn destroy(sensor: Kxcj9<I2cMock>) {
+pub fn destroy<IC>(sensor: Kxcj9<I2cMock, IC>) {
     sensor.destroy().done();
 }
 

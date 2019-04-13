@@ -129,21 +129,13 @@ where
     /// Enable the device (starts taking measurements).
     pub fn enable(&mut self) -> Result<(), Error<E>> {
         let config = self.ctrl1.with_high(BitFlags::PC1);
-        self.i2c
-            .write(self.address, &[Register::CTRL1, config.bits])
-            .map_err(Error::I2C)?;
-        self.ctrl1 = config;
-        Ok(())
+        self.update_ctrl1(config)
     }
 
     /// Disable the device.
     pub fn disable(&mut self) -> Result<(), Error<E>> {
         let config = self.ctrl1.with_low(BitFlags::PC1);
-        self.i2c
-            .write(self.address, &[Register::CTRL1, config.bits])
-            .map_err(Error::I2C)?;
-        self.ctrl1 = config;
-        Ok(())
+        self.update_ctrl1(config)
     }
 
     /// Read the `WHO_AM_I` register. This should return `0xF`.
@@ -162,11 +154,24 @@ where
             Resolution::High => self.ctrl1.with_high(BitFlags::RES),
         };
         self.disable()?; // Ensure PC1 is set to 0 before changing settings
-        self.i2c
-            .write(self.address, &[Register::CTRL1, config.bits])
-            .map_err(Error::I2C)?;
+        self.write_register(Register::CTRL1, config.bits)?;
         self.ctrl1 = config;
         Ok(())
+    }
+
+
+    fn update_ctrl1(&mut self, value: Config) -> Result<(), Error<E>> {
+        self.i2c
+            .write(self.address, &[Register::CTRL1, value.bits])
+            .map_err(Error::I2C)?;
+        self.ctrl1 = value;
+        Ok(())
+    }
+
+    fn write_register(&mut self, reg_addr: u8, value: u8) -> Result<(), Error<E>> {
+        self.i2c
+            .write(self.address, &[reg_addr, value])
+            .map_err(Error::I2C)
     }
 }
 

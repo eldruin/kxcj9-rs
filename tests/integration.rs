@@ -1,7 +1,7 @@
 extern crate embedded_hal_mock as hal;
 extern crate kxcj9;
 use hal::i2c::{Mock as I2cMock, Transaction as I2cTrans};
-use kxcj9::{Kxcj9, Resolution, SlaveAddr};
+use kxcj9::{Kxcj9, OutputDataRate, Resolution, SlaveAddr};
 
 const DEV_ADDR: u8 = 0xE;
 
@@ -9,6 +9,7 @@ struct Register;
 impl Register {
     const WHO_AM_I: u8 = 0x0F;
     const CTRL1: u8 = 0x1B;
+    const DATA_CTRL: u8 = 0x21;
 }
 
 struct BitFlags;
@@ -99,3 +100,47 @@ fn set_resolution_keeps_enable_status() {
     sensor.set_resolution(Resolution::High).unwrap();
     destroy(sensor);
 }
+
+#[test]
+fn set_odr_keeps_enable_status() {
+    let transactions = [
+        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, BitFlags::PC1]),
+        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0]),
+        I2cTrans::write(DEV_ADDR, vec![Register::DATA_CTRL, 2]),
+        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, BitFlags::PC1]),
+    ];
+    let mut sensor = new(&transactions);
+    sensor.enable().unwrap();
+    sensor.set_output_data_rate(OutputDataRate::Hz50).unwrap();
+    destroy(sensor);
+}
+
+macro_rules! set_odr_test {
+    ($name:ident, $variant:ident, $expected:expr) => {
+        #[test]
+        fn $name() {
+            let transactions = [
+                I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0]),
+                I2cTrans::write(DEV_ADDR, vec![Register::DATA_CTRL, $expected]),
+            ];
+            let mut sensor = new(&transactions);
+            sensor
+                .set_output_data_rate(OutputDataRate::$variant)
+                .unwrap();
+            destroy(sensor);
+        }
+    };
+}
+
+set_odr_test!(set_odr_hz0, Hz0_781, 8);
+set_odr_test!(set_odr_hz1, Hz1_563, 9);
+set_odr_test!(set_odr_hz3, Hz3_125, 10);
+set_odr_test!(set_odr_hz6, Hz6_25, 11);
+set_odr_test!(set_odr_hz12, Hz12_5, 0);
+set_odr_test!(set_odr_hz25, Hz25, 1);
+set_odr_test!(set_odr_hz50, Hz50, 2);
+set_odr_test!(set_odr_hz100, Hz100, 3);
+set_odr_test!(set_odr_hz200, Hz200, 4);
+set_odr_test!(set_odr_hz400, Hz400, 5);
+set_odr_test!(set_odr_hz800, Hz800, 6);
+set_odr_test!(set_odr_hz1600, Hz1600, 7);

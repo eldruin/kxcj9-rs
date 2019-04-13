@@ -42,6 +42,35 @@ pub enum Resolution {
     High,
 }
 
+/// Output data rate
+#[derive(Debug, Clone, Copy)]
+pub enum OutputDataRate {
+    /// 0.781 Hz
+    Hz0_781,
+    /// 1.563 Hz
+    Hz1_563,
+    /// 3.125 Hz
+    Hz3_125,
+    /// 6.25 Hz
+    Hz6_25,
+    /// 12.5 Hz
+    Hz12_5,
+    /// 25 Hz
+    Hz25,
+    /// 50 Hz (default)
+    Hz50,
+    /// 100 Hz
+    Hz100,
+    /// 200 Hz
+    Hz200,
+    /// 400 Hz (Forces device into full power mode)
+    Hz400,
+    /// 800 Hz (Forces device into full power mode)
+    Hz800,
+    /// 1600 Hz (Forces device into full power mode)
+    Hz1600,
+}
+
 /// Possible slave addresses
 #[derive(Debug, Clone, Copy)]
 pub enum SlaveAddr {
@@ -73,6 +102,7 @@ struct Register;
 impl Register {
     const WHO_AM_I: u8 = 0x0F;
     const CTRL1: u8 = 0x1B;
+    const DATA_CTRL: u8 = 0x21;
 }
 
 struct BitFlags;
@@ -81,7 +111,7 @@ impl BitFlags {
     const RES: u8 = 0b0100_0000;
 }
 
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
 struct Config {
     bits: u8,
 }
@@ -106,6 +136,7 @@ pub struct Kxcj9<I2C> {
     i2c: I2C,
     address: u8,
     ctrl1: Config,
+    data_ctrl: u8,
 }
 
 impl<I2C, E> Kxcj9<I2C>
@@ -118,6 +149,7 @@ where
             i2c,
             address: address.addr(DEVICE_BASE_ADDRESS),
             ctrl1: Config::default(),
+            data_ctrl: 0x02,
         }
     }
 
@@ -159,6 +191,35 @@ where
         Ok(())
     }
 
+    /// Set output data rate
+    pub fn set_output_data_rate(&mut self, odr: OutputDataRate) -> Result<(), Error<E>> {
+        use OutputDataRate as ODR;
+        let config = match odr {
+            ODR::Hz0_781 => 0b000_1000,
+            ODR::Hz1_563 => 0b000_1001,
+            ODR::Hz3_125 => 0b000_1010,
+            ODR::Hz6_25 => 0b000_1011,
+            ODR::Hz12_5 => 0,
+            ODR::Hz25 => 0b000_0001,
+            ODR::Hz50 => 0b000_0010,
+            ODR::Hz100 => 0b000_0011,
+            ODR::Hz200 => 0b000_0100,
+            ODR::Hz400 => 0b000_0101,
+            ODR::Hz800 => 0b000_0110,
+            ODR::Hz1600 => 0b000_0111,
+        };
+        let previous_ctrl1 = self.ctrl1;
+        self.disable()?; // Ensure PC1 is set to 0 before changing settings
+        self.i2c
+            .write(self.address, &[Register::DATA_CTRL, config])
+            .map_err(Error::I2C)?;
+        self.data_ctrl = config;
+        if self.ctrl1 != previous_ctrl1 {
+            self.update_ctrl1(previous_ctrl1)
+        } else {
+            Ok(())
+        }
+    }
 
     fn update_ctrl1(&mut self, value: Config) -> Result<(), Error<E>> {
         self.i2c

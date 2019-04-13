@@ -186,9 +186,7 @@ where
             Resolution::High => self.ctrl1.with_high(BitFlags::RES),
         };
         self.prepare_ctrl1_to_change_settings()?;
-        self.write_register(Register::CTRL1, config.bits)?;
-        self.ctrl1 = config;
-        Ok(())
+        self.update_ctrl1(config)
     }
 
     /// Set output data rate
@@ -227,9 +225,7 @@ where
     }
 
     fn update_ctrl1(&mut self, value: Config) -> Result<(), Error<E>> {
-        self.i2c
-            .write(self.address, &[Register::CTRL1, value.bits])
-            .map_err(Error::I2C)?;
+        self.write_register(Register::CTRL1, value.bits)?;
         self.ctrl1 = value;
         Ok(())
     }

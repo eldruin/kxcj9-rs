@@ -8,6 +8,12 @@ const DEV_ADDR: u8 = 0xE;
 struct Register;
 impl Register {
     const WHO_AM_I: u8 = 0x0F;
+    const CTRL1: u8 = 0x1B;
+}
+
+struct BitFlags;
+impl BitFlags {
+    const PC1: u8 = 0b1000_0000;
 }
 
 pub fn new(transactions: &[I2cTrans]) -> Kxcj9<I2cMock> {
@@ -33,5 +39,27 @@ fn can_read_who_am_i() {
     )];
     let mut sensor = new(&transactions);
     assert_eq!(0x0F, sensor.who_am_i().unwrap());
+    destroy(sensor);
+}
+
+#[test]
+fn can_enable() {
+    let transactions = [I2cTrans::write(
+        DEV_ADDR,
+        vec![Register::CTRL1, BitFlags::PC1],
+    )];
+    let mut sensor = new(&transactions);
+    sensor.enable().unwrap();
+    destroy(sensor);
+}
+
+#[test]
+fn can_disable() {
+    let transactions = [I2cTrans::write(
+        DEV_ADDR,
+        vec![Register::CTRL1, 0],
+    )];
+    let mut sensor = new(&transactions);
+    sensor.disable().unwrap();
     destroy(sensor);
 }

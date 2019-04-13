@@ -63,6 +63,30 @@ const DEVICE_BASE_ADDRESS: u8 = 0xE;
 struct Register;
 impl Register {
     const WHO_AM_I: u8 = 0x0F;
+    const CTRL1: u8 = 0x1B;
+}
+
+struct BitFlags;
+impl BitFlags {
+    const PC1: u8 = 0b1000_0000;
+}
+
+#[derive(Debug, Default, Clone, Copy)]
+struct Config {
+    bits: u8,
+}
+
+impl Config {
+    fn with_high(self, mask: u8) -> Self {
+        Config {
+            bits: self.bits | mask,
+        }
+    }
+    fn with_low(self, mask: u8) -> Self {
+        Config {
+            bits: self.bits & !mask,
+        }
+    }
 }
 
 /// KXCJ9 device driver.
@@ -71,23 +95,45 @@ pub struct Kxcj9<I2C> {
     /// The concrete I²C device implementation.
     i2c: I2C,
     address: u8,
+    ctrl1: Config,
 }
 
 impl<I2C, E> Kxcj9<I2C>
 where
-    I2C: hal::blocking::i2c::WriteRead<Error = E>,
+    I2C: hal::blocking::i2c::WriteRead<Error = E> + hal::blocking::i2c::Write<Error = E>,
 {
     /// Create new instance of the KXCJ9 device.
     pub fn new(i2c: I2C, address: SlaveAddr) -> Self {
         Kxcj9 {
             i2c,
             address: address.addr(DEVICE_BASE_ADDRESS),
+            ctrl1: Config::default(),
         }
     }
 
     /// Destroy driver instance, return I²C bus instance.
     pub fn destroy(self) -> I2C {
         self.i2c
+    }
+
+    /// Enable the device (starts taking measurements).
+    pub fn enable(&mut self) -> Result<(), Error<E>> {
+        let config = self.ctrl1.with_high(BitFlags::PC1);
+        self.i2c
+            .write(self.address, &[Register::CTRL1, config.bits])
+            .map_err(Error::I2C)?;
+        self.ctrl1 = config;
+        Ok(())
+    }
+
+    /// Disable the device.
+    pub fn disable(&mut self) -> Result<(), Error<E>> {
+        let config = self.ctrl1.with_low(BitFlags::PC1);
+        self.i2c
+            .write(self.address, &[Register::CTRL1, config.bits])
+            .map_err(Error::I2C)?;
+        self.ctrl1 = config;
+        Ok(())
     }
 
     /// Read the `WHO_AM_I` register. This should return `0xF`.

@@ -185,7 +185,7 @@ where
             Resolution::Low => self.ctrl1.with_low(BitFlags::RES),
             Resolution::High => self.ctrl1.with_high(BitFlags::RES),
         };
-        self.disable()?; // Ensure PC1 is set to 0 before changing settings
+        self.prepare_ctrl1_to_change_settings()?;
         self.write_register(Register::CTRL1, config.bits)?;
         self.ctrl1 = config;
         Ok(())
@@ -209,7 +209,7 @@ where
             ODR::Hz1600 => 0b000_0111,
         };
         let previous_ctrl1 = self.ctrl1;
-        self.disable()?; // Ensure PC1 is set to 0 before changing settings
+        self.prepare_ctrl1_to_change_settings()?;
         self.i2c
             .write(self.address, &[Register::DATA_CTRL, config])
             .map_err(Error::I2C)?;
@@ -219,6 +219,11 @@ where
         } else {
             Ok(())
         }
+    }
+
+    /// Ensure PC1 in CTRL1 is set to 0 before changing settings
+    fn prepare_ctrl1_to_change_settings(&mut self) -> Result<(), Error<E>> {
+        self.disable()
     }
 
     fn update_ctrl1(&mut self, value: Config) -> Result<(), Error<E>> {

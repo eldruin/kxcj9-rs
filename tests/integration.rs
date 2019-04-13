@@ -1,7 +1,7 @@
 extern crate embedded_hal_mock as hal;
 extern crate kxcj9;
 use hal::i2c::{Mock as I2cMock, Transaction as I2cTrans};
-use kxcj9::{Kxcj9, SlaveAddr};
+use kxcj9::{Kxcj9, Resolution, SlaveAddr};
 
 const DEV_ADDR: u8 = 0xE;
 
@@ -14,6 +14,7 @@ impl Register {
 struct BitFlags;
 impl BitFlags {
     const PC1: u8 = 0b1000_0000;
+    const RES: u8 = 0b0100_0000;
 }
 
 pub fn new(transactions: &[I2cTrans]) -> Kxcj9<I2cMock> {
@@ -55,11 +56,46 @@ fn can_enable() {
 
 #[test]
 fn can_disable() {
-    let transactions = [I2cTrans::write(
-        DEV_ADDR,
-        vec![Register::CTRL1, 0],
-    )];
+    let transactions = [I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0])];
     let mut sensor = new(&transactions);
     sensor.disable().unwrap();
+    destroy(sensor);
+}
+
+#[test]
+fn can_set_resolution_low() {
+    let transactions = [
+        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0]),
+        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0]),
+    ];
+    let mut sensor = new(&transactions);
+    sensor.set_resolution(Resolution::Low).unwrap();
+    destroy(sensor);
+}
+
+#[test]
+fn can_set_resolution_high() {
+    let transactions = [
+        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0]),
+        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, BitFlags::RES]),
+    ];
+    let mut sensor = new(&transactions);
+    sensor.set_resolution(Resolution::High).unwrap();
+    destroy(sensor);
+}
+
+#[test]
+fn set_resolution_keeps_enable_status() {
+    let transactions = [
+        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, BitFlags::PC1]),
+        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0]),
+        I2cTrans::write(
+            DEV_ADDR,
+            vec![Register::CTRL1, BitFlags::PC1 | BitFlags::RES],
+        ),
+    ];
+    let mut sensor = new(&transactions);
+    sensor.enable().unwrap();
+    sensor.set_resolution(Resolution::High).unwrap();
     destroy(sensor);
 }

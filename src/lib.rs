@@ -33,6 +33,15 @@ pub enum Error<E> {
     I2C(E),
 }
 
+/// Measurement resolution
+#[derive(Debug, Clone, Copy)]
+pub enum Resolution {
+    /// 8-bit resolution.
+    Low,
+    /// 12-bit/14-bit resolution.
+    High,
+}
+
 /// Possible slave addresses
 #[derive(Debug, Clone, Copy)]
 pub enum SlaveAddr {
@@ -69,6 +78,7 @@ impl Register {
 struct BitFlags;
 impl BitFlags {
     const PC1: u8 = 0b1000_0000;
+    const RES: u8 = 0b0100_0000;
 }
 
 #[derive(Debug, Default, Clone, Copy)]
@@ -143,6 +153,20 @@ where
             .write_read(self.address, &[Register::WHO_AM_I], &mut data)
             .map_err(Error::I2C)?;
         Ok(data[0])
+    }
+
+    /// Select resolution.
+    pub fn set_resolution(&mut self, resolution: Resolution) -> Result<(), Error<E>> {
+        let config = match resolution {
+            Resolution::Low => self.ctrl1.with_low(BitFlags::RES),
+            Resolution::High => self.ctrl1.with_high(BitFlags::RES),
+        };
+        self.disable()?; // Ensure PC1 is set to 0 before changing settings
+        self.i2c
+            .write(self.address, &[Register::CTRL1, config.bits])
+            .map_err(Error::I2C)?;
+        self.ctrl1 = config;
+        Ok(())
     }
 }
 

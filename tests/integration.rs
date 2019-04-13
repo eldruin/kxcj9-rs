@@ -63,9 +63,34 @@ fn can_disable() {
     destroy(sensor);
 }
 
+macro_rules! cannot_set_res_low_for_odr {
+    ($name:ident, $variant:ident, $value:expr) => {
+        #[test]
+        fn $name() {
+            let transactions = [
+                I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0]),
+                I2cTrans::write(DEV_ADDR, vec![Register::DATA_CTRL, $value]),
+                I2cTrans::write_read(DEV_ADDR, vec![Register::DATA_CTRL], vec![$value]),
+            ];
+            let mut sensor = new(&transactions);
+            sensor
+                .set_output_data_rate(OutputDataRate::$variant)
+                .unwrap();
+            sensor
+                .set_resolution(Resolution::Low)
+                .expect_err("Should have returned error");
+            destroy(sensor);
+        }
+    };
+}
+cannot_set_res_low_for_odr!(cannot_set_res_low_odr_400, Hz400, 5);
+cannot_set_res_low_for_odr!(cannot_set_res_low_odr_800, Hz800, 6);
+cannot_set_res_low_for_odr!(cannot_set_res_low_odr_1600, Hz1600, 7);
+
 #[test]
 fn can_set_resolution_low() {
     let transactions = [
+        I2cTrans::write_read(DEV_ADDR, vec![Register::DATA_CTRL], vec![4]),
         I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0]),
         I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0]),
     ];

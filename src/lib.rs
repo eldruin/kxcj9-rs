@@ -31,6 +31,8 @@ extern crate embedded_hal as hal;
 pub enum Error<E> {
     /// I²C bus error
     I2C(E),
+    /// Invalid setting for the current configuration
+    InvalidSetting,
 }
 
 /// Measurement resolution
@@ -179,12 +181,22 @@ where
         Ok(data[0])
     }
 
-    /// Select resolution.
+    /// Set resolution.
+    ///
+    /// Returns `Err(Error::InvalidSetting)` if setting `Resolution::Low` but the
+    /// configured output data rate is greater or equal to 400 Hz.
     pub fn set_resolution(&mut self, resolution: Resolution) -> Result<(), Error<E>> {
-        let config = match resolution {
-            Resolution::Low => self.ctrl1.with_low(BitFlags::RES),
-            Resolution::High => self.ctrl1.with_high(BitFlags::RES),
-        };
+        let config;
+        match resolution {
+            Resolution::Low => {
+                if self.output_data_rate_greater_eq_400hz()? {
+                    return Err(Error::InvalidSetting);
+                } else {
+                    config = self.ctrl1.with_low(BitFlags::RES);
+                }
+            }
+            Resolution::High => config = self.ctrl1.with_high(BitFlags::RES),
+        }
         self.prepare_ctrl1_to_change_settings()?;
         self.update_ctrl1(config)
     }
@@ -217,6 +229,14 @@ where
         } else {
             Ok(())
         }
+    }
+
+    fn output_data_rate_greater_eq_400hz(&mut self) -> Result<bool, Error<E>> {
+        let mut data_ctrl = [0];
+        self.i2c
+            .write_read(self.address, &[Register::DATA_CTRL], &mut data_ctrl)
+            .map_err(Error::I2C)?;
+        Ok(data_ctrl[0] >= 0b000_0101 && data_ctrl[0] <= 0b000_0111)
     }
 
     /// Ensure PC1 in CTRL1 is set to 0 before changing settings

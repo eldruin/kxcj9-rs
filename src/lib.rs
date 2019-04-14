@@ -26,6 +26,7 @@
 
 extern crate embedded_hal as hal;
 use core::marker::PhantomData;
+use hal::blocking::i2c;
 
 /// All possible errors in this crate
 #[derive(Debug)]
@@ -151,7 +152,7 @@ pub struct Kxcj9<I2C, IC> {
 
 impl<I2C, E> Kxcj9<I2C, ic::Kxcj9_1008>
 where
-    I2C: hal::blocking::i2c::WriteRead<Error = E> + hal::blocking::i2c::Write<Error = E>,
+    I2C: i2c::WriteRead<Error = E> + i2c::Write<Error = E>,
 {
     /// Create new instance of the KXCJ9-1008 device.
     pub fn new_1008(i2c: I2C, address: SlaveAddr) -> Self {
@@ -167,7 +168,7 @@ where
 
 impl<I2C, E> Kxcj9<I2C, ic::Kxcj9_1018>
 where
-    I2C: hal::blocking::i2c::WriteRead<Error = E> + hal::blocking::i2c::Write<Error = E>,
+    I2C: i2c::WriteRead<Error = E> + i2c::Write<Error = E>,
 {
     /// Create new instance of the KXCJ9-1018 device.
     pub fn new_1018(i2c: I2C, address: SlaveAddr) -> Self {
@@ -183,7 +184,7 @@ where
 
 impl<I2C, E, IC> Kxcj9<I2C, IC>
 where
-    I2C: hal::blocking::i2c::WriteRead<Error = E> + hal::blocking::i2c::Write<Error = E>,
+    I2C: i2c::WriteRead<Error = E> + i2c::Write<Error = E>,
 {
     /// Destroy driver instance, return I²C bus instance.
     pub fn destroy(self) -> I2C {

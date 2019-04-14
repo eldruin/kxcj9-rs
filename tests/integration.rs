@@ -1,37 +1,10 @@
 extern crate embedded_hal_mock as hal;
 extern crate kxcj9;
-use hal::i2c::{Mock as I2cMock, Transaction as I2cTrans};
-use kxcj9::{ic, GScale16, GScale8, Kxcj9, OutputDataRate, Resolution, SlaveAddr};
+use hal::i2c::{Transaction as I2cTrans};
+use kxcj9::{GScale16, GScale8, OutputDataRate, Resolution};
 
-const DEV_ADDR: u8 = 0xE;
-
-struct Register;
-impl Register {
-    const XOUT_L: u8 = 0x06;
-    const WHO_AM_I: u8 = 0x0F;
-    const CTRL1: u8 = 0x1B;
-    const DATA_CTRL: u8 = 0x21;
-}
-
-struct BitFlags;
-impl BitFlags {
-    const PC1: u8 = 0b1000_0000;
-    const RES: u8 = 0b0100_0000;
-    const GSEL1: u8 = 0b0001_0000;
-    const GSEL0: u8 = 0b0000_1000;
-}
-
-pub fn new_1008(transactions: &[I2cTrans]) -> Kxcj9<I2cMock, ic::Kxcj9_1008> {
-    Kxcj9::new_1008(I2cMock::new(&transactions), SlaveAddr::default())
-}
-
-pub fn new_1018(transactions: &[I2cTrans]) -> Kxcj9<I2cMock, ic::Kxcj9_1018> {
-    Kxcj9::new_1018(I2cMock::new(&transactions), SlaveAddr::default())
-}
-
-pub fn destroy<IC>(sensor: Kxcj9<I2cMock, IC>) {
-    sensor.destroy().done();
-}
+mod common;
+use common::{new_1008, new_1018, destroy, DEV_ADDR, Register, BitFlags};
 
 #[test]
 fn can_create_and_destroy() {

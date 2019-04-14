@@ -71,6 +71,17 @@ pub enum OutputDataRate {
     Hz1600,
 }
 
+/// Acceleration measurement scaled to configured G range
+#[derive(Debug, Default, Clone)]
+pub struct Measurement {
+    /// X-axis acceleration.
+    pub x: f32,
+    /// Y-axis acceleration.
+    pub y: f32,
+    /// Z-axis acceleration.
+    pub z: f32,
+}
+
 /// Unscaled acceleration measurement
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct UnscaledMeasurement {

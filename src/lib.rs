@@ -30,7 +30,8 @@ use hal::blocking::i2c;
 
 mod types;
 pub use types::{
-    Error, GScale16, GScale8, OutputDataRate, Resolution, SlaveAddr, UnscaledMeasurement,
+    Error, GScale16, GScale8, Measurement, OutputDataRate, Resolution, SlaveAddr,
+    UnscaledMeasurement,
 };
 
 const DEVICE_BASE_ADDRESS: u8 = 0xE;
@@ -74,12 +75,17 @@ pub struct Kxcj9<I2C, IC> {
 }
 
 mod conversion;
+mod scale_measurement;
+pub use scale_measurement::ScaleMeasurement;
 mod kxcj9;
+pub use kxcj9::{GScaleConfig, MeasurementBits};
 
 mod private {
-    use super::ic;
+    use super::{ic, kxcj9};
     pub trait Sealed {}
 
     impl Sealed for ic::Kxcj9_1008 {}
     impl Sealed for ic::Kxcj9_1018 {}
+    impl Sealed for kxcj9::GScaleConfig {}
+    impl Sealed for kxcj9::MeasurementBits {}
 }

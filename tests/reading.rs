@@ -60,3 +60,74 @@ fn can_read_unscaled_14bit() {
     assert_eq!(8191, measurement.z);
     destroy(sensor);
 }
+
+fn assert_near_positive(a: f32, b: f32) {
+    if (a - b).abs() > 0.1 {
+        panic!(format!("{} vs {}", a, b));
+    }
+}
+
+#[test]
+#[should_panic]
+fn assert_near_can_fail() {
+    assert_near_positive(1.0, 2.0)
+}
+
+#[test]
+fn can_read_8bit_4g_1018() {
+    let transactions = [I2cTrans::write_read(
+        DEV_ADDR,
+        vec![Register::XOUT_L],
+        vec![0, 0xAB, 64, 0xCD, 127, 0xEF],
+    )];
+    let mut sensor = new_1018(&transactions);
+    let measurement = sensor.read().unwrap();
+    assert_near_positive(0.0, measurement.x);
+    assert_near_positive(2.0, measurement.y);
+    assert_near_positive(4.0, measurement.z);
+    destroy(sensor);
+}
+
+#[test]
+fn can_read_12bit_8g_1018() {
+    use BitFlags as BF;
+    let transactions = [
+        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0]),
+        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, BF::RES]),
+        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, BF::RES]),
+        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, BF::RES | BF::GSEL0]),
+        I2cTrans::write_read(DEV_ADDR, vec![Register::XOUT_L], vec![1, 0, 255, 3, 255, 7]),
+    ];
+    let mut sensor = new_1018(&transactions);
+    sensor.set_resolution(Resolution::High).unwrap();
+    sensor.set_scale(GScale16::G8).unwrap();
+    let measurement = sensor.read().unwrap();
+    assert_near_positive(0.0, measurement.x);
+    assert_near_positive(4.0, measurement.y);
+    assert_near_positive(8.0, measurement.z);
+    destroy(sensor);
+}
+
+#[test]
+fn can_read_14bit_16g_1018() {
+    use BitFlags as BF;
+    let transactions = [
+        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0]),
+        I2cTrans::write(
+            DEV_ADDR,
+            vec![Register::CTRL1, BF::RES | BF::GSEL0 | BF::GSEL1],
+        ),
+        I2cTrans::write_read(
+            DEV_ADDR,
+            vec![Register::XOUT_L],
+            vec![1, 0, 255, 15, 255, 31],
+        ),
+    ];
+    let mut sensor = new_1018(&transactions);
+    sensor.set_scale(GScale16::G16FP).unwrap();
+    let measurement = sensor.read().unwrap();
+    assert_near_positive(0.0, measurement.x);
+    assert_near_positive(8.0, measurement.y);
+    assert_near_positive(16.0, measurement.z);
+    destroy(sensor);
+}

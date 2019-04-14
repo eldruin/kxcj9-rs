@@ -1,7 +1,7 @@
 use {
     conversion::{convert_12bit, convert_14bit, convert_8bit},
-    i2c, ic, Config, Error, GScale16, GScale8, Kxcj9, OutputDataRate, PhantomData, Resolution,
-    SlaveAddr, UnscaledMeasurement, DEVICE_BASE_ADDRESS,
+    i2c, ic, Config, Error, GScale16, GScale8, Kxcj9, Measurement, OutputDataRate, PhantomData,
+    Resolution, ScaleMeasurement, SlaveAddr, UnscaledMeasurement, DEVICE_BASE_ADDRESS,
 };
 
 struct Register;
@@ -20,10 +20,40 @@ impl BitFlags {
     const GSEL0: u8 = 0b0000_1000;
 }
 
-enum MeasurementBits {
+#[doc(hidden)]
+pub enum MeasurementBits {
     _8bit,
     _12bit,
     _14bit,
+}
+
+impl MeasurementBits {
+    pub(crate) fn max(self) -> f32 {
+        match self {
+            MeasurementBits::_8bit => 128.0,
+            MeasurementBits::_12bit => 2048.0,
+            MeasurementBits::_14bit => 8192.0,
+        }
+    }
+}
+
+#[doc(hidden)]
+pub enum GScaleConfig {
+    _0,
+    _1,
+    _2,
+    _3,
+}
+
+impl GScaleConfig {
+    fn from_ctrl1(ctrl1: Config) -> Self {
+        match ctrl1.bits & (BitFlags::GSEL0 | BitFlags::GSEL1) {
+            0 => GScaleConfig::_0,
+            BitFlags::GSEL0 => GScaleConfig::_1,
+            BitFlags::GSEL1 => GScaleConfig::_2,
+            _ => GScaleConfig::_3,
+        }
+    }
 }
 
 impl<I2C, E> Kxcj9<I2C, ic::Kxcj9_1008>
@@ -78,7 +108,28 @@ where
         let config = self.ctrl1.with_low(BitFlags::PC1);
         self.update_ctrl1(config)
     }
+}
 
+impl<I2C, E, IC> Kxcj9<I2C, IC>
+where
+    I2C: i2c::WriteRead<Error = E> + i2c::Write<Error = E>,
+    IC: ScaleMeasurement,
+{
+    /// Read acceleration sensor data scaled to configured G range
+    pub fn read(&mut self) -> Result<Measurement, Error<E>> {
+        let unscaled = self.read_unscaled()?;
+        Ok(IC::get_scaled(
+            unscaled,
+            self.get_measurement_bits(),
+            GScaleConfig::from_ctrl1(self.ctrl1),
+        ))
+    }
+}
+
+impl<I2C, E, IC> Kxcj9<I2C, IC>
+where
+    I2C: i2c::WriteRead<Error = E> + i2c::Write<Error = E>,
+{
     /// Read unscaled acceleration sensor data
     pub fn read_unscaled(&mut self) -> Result<UnscaledMeasurement, Error<E>> {
         let mut data = [0; 6];

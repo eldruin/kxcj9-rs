@@ -21,6 +21,79 @@
 //! Application Note:
 //! - [Getting started with the KXCJ9 and KXCJB](http://kionixfs.kionix.com/en/document/AN028%20Getting%20Started%20with%20the%20KXCJ9%20and%20KXCJB.pdf)
 //!
+//! ## Usage examples (see also examples folder)
+//!
+//! To use this driver, import this crate and an `embedded_hal` implementation,
+//! then instantiate the device.
+//!
+//! Please find additional examples using hardware in this repository: [driver-examples]
+//!
+//! [driver-examples]: https://github.com/eldruin/driver-examples
+//!
+//! ### Read acceleration
+//!
+//! ```no_run
+//! extern crate kxcj9;
+//! extern crate linux_embedded_hal as hal;
+//! use kxcj9::{Kxcj9, SlaveAddr};
+//!
+//! # fn main() {
+//! let dev = hal::I2cdev::new("/dev/i2c-1").unwrap();
+//! let address =  SlaveAddr::default();
+//! let mut sensor = Kxcj9::new_1018(dev, address);
+//! sensor.enable().unwrap();
+//! let acc = sensor.read().unwrap();
+//! println!("X: {:2}, Y: {:2}, Z: {:2}", acc.x, acc.y, acc.z);
+//! # }
+//! ```
+//!
+//! ### Select high resolution
+//!
+//! ```no_run
+//! extern crate kxcj9;
+//! extern crate linux_embedded_hal as hal;
+//! use kxcj9::{Kxcj9, Resolution, SlaveAddr};
+//!
+//! # fn main() {
+//! let dev = hal::I2cdev::new("/dev/i2c-1").unwrap();
+//! let mut sensor = Kxcj9::new_1018(dev, SlaveAddr::default());
+//! sensor.enable().unwrap();
+//! sensor.set_resolution(Resolution::High).unwrap();
+//! // with this settings measurements are taken with 12-bit resolution
+//! # }
+//! ```
+//!
+//! ### Select +/-16g scale
+//!
+//! ```no_run
+//! extern crate kxcj9;
+//! extern crate linux_embedded_hal as hal;
+//! use kxcj9::{GScale16, Kxcj9, SlaveAddr};
+//!
+//! # fn main() {
+//! let dev = hal::I2cdev::new("/dev/i2c-1").unwrap();
+//! let mut sensor = Kxcj9::new_1018(dev, SlaveAddr::default());
+//! sensor.enable().unwrap();
+//! sensor.set_scale(GScale16::G16FP).unwrap();
+//! // with this settings measurements are taken with 14-bit resolution
+//! # }
+//! ```
+//!
+//! ### Select 200Hz output data rate
+//!
+//! ```no_run
+//! extern crate kxcj9;
+//! extern crate linux_embedded_hal as hal;
+//! use kxcj9::{Kxcj9, OutputDataRate, SlaveAddr};
+//!
+//! # fn main() {
+//! let dev = hal::I2cdev::new("/dev/i2c-1").unwrap();
+//! let mut sensor = Kxcj9::new_1018(dev, SlaveAddr::default());
+//! sensor.enable().unwrap();
+//! sensor.set_output_data_rate(OutputDataRate::Hz200).unwrap();
+//! # }
+//! ```
+
 #![deny(unsafe_code, missing_docs)]
 #![no_std]
 

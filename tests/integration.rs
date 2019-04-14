@@ -18,7 +18,7 @@ impl BitFlags {
     const RES: u8 = 0b0100_0000;
 }
 
-pub fn new(transactions: &[I2cTrans]) -> Kxcj9<I2cMock, ic::Kxcj9_1018> {
+pub fn new_1018(transactions: &[I2cTrans]) -> Kxcj9<I2cMock, ic::Kxcj9_1018> {
     Kxcj9::new_1018(I2cMock::new(&transactions), SlaveAddr::default())
 }
 
@@ -28,7 +28,7 @@ pub fn destroy<IC>(sensor: Kxcj9<I2cMock, IC>) {
 
 #[test]
 fn can_create_and_destroy() {
-    let sensor = new(&[]);
+    let sensor = new_1018(&[]);
     destroy(sensor);
 }
 
@@ -39,7 +39,7 @@ fn can_read_who_am_i() {
         vec![Register::WHO_AM_I],
         vec![0x0F],
     )];
-    let mut sensor = new(&transactions);
+    let mut sensor = new_1018(&transactions);
     assert_eq!(0x0F, sensor.who_am_i().unwrap());
     destroy(sensor);
 }
@@ -50,7 +50,7 @@ fn can_enable() {
         DEV_ADDR,
         vec![Register::CTRL1, BitFlags::PC1],
     )];
-    let mut sensor = new(&transactions);
+    let mut sensor = new_1018(&transactions);
     sensor.enable().unwrap();
     destroy(sensor);
 }
@@ -58,7 +58,7 @@ fn can_enable() {
 #[test]
 fn can_disable() {
     let transactions = [I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0])];
-    let mut sensor = new(&transactions);
+    let mut sensor = new_1018(&transactions);
     sensor.disable().unwrap();
     destroy(sensor);
 }
@@ -72,7 +72,7 @@ macro_rules! cannot_set_res_low_for_odr {
                 I2cTrans::write(DEV_ADDR, vec![Register::DATA_CTRL, $value]),
                 I2cTrans::write_read(DEV_ADDR, vec![Register::DATA_CTRL], vec![$value]),
             ];
-            let mut sensor = new(&transactions);
+            let mut sensor = new_1018(&transactions);
             sensor
                 .set_output_data_rate(OutputDataRate::$variant)
                 .unwrap();
@@ -94,7 +94,7 @@ fn can_set_resolution_low() {
         I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0]),
         I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0]),
     ];
-    let mut sensor = new(&transactions);
+    let mut sensor = new_1018(&transactions);
     sensor.set_resolution(Resolution::Low).unwrap();
     destroy(sensor);
 }
@@ -105,7 +105,7 @@ fn can_set_resolution_high() {
         I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0]),
         I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, BitFlags::RES]),
     ];
-    let mut sensor = new(&transactions);
+    let mut sensor = new_1018(&transactions);
     sensor.set_resolution(Resolution::High).unwrap();
     destroy(sensor);
 }
@@ -120,7 +120,7 @@ fn set_resolution_keeps_enable_status() {
             vec![Register::CTRL1, BitFlags::PC1 | BitFlags::RES],
         ),
     ];
-    let mut sensor = new(&transactions);
+    let mut sensor = new_1018(&transactions);
     sensor.enable().unwrap();
     sensor.set_resolution(Resolution::High).unwrap();
     destroy(sensor);
@@ -134,7 +134,7 @@ fn set_odr_keeps_enable_status() {
         I2cTrans::write(DEV_ADDR, vec![Register::DATA_CTRL, 2]),
         I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, BitFlags::PC1]),
     ];
-    let mut sensor = new(&transactions);
+    let mut sensor = new_1018(&transactions);
     sensor.enable().unwrap();
     sensor.set_output_data_rate(OutputDataRate::Hz50).unwrap();
     destroy(sensor);
@@ -148,7 +148,7 @@ macro_rules! set_odr_test {
                 I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0]),
                 I2cTrans::write(DEV_ADDR, vec![Register::DATA_CTRL, $expected]),
             ];
-            let mut sensor = new(&transactions);
+            let mut sensor = new_1018(&transactions);
             sensor
                 .set_output_data_rate(OutputDataRate::$variant)
                 .unwrap();

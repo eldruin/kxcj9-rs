@@ -22,6 +22,30 @@ Datasheet:
 Application Note:
 - [Getting started with the KXCJ9 and KXCJB](http://kionixfs.kionix.com/en/document/AN028%20Getting%20Started%20with%20the%20KXCJ9%20and%20KXCJB.pdf)
 
+## Usage
+
+To use this driver, import this crate and an `embedded_hal` implementation,
+then instantiate the device.
+
+Please find additional examples using hardware in this repository: [driver-examples]
+
+[driver-examples]: https://github.com/eldruin/driver-examples
+
+```rust
+extern crate kxcj9;
+extern crate linux_embedded_hal as hal;
+use kxcj9::{Kxcj9, SlaveAddr};
+
+fn main() {
+    let dev = hal::I2cdev::new("/dev/i2c-1").unwrap();
+    let address =  SlaveAddr::default();
+    let mut sensor = Kxcj9::new_1018(dev, address);
+    sensor.enable().unwrap();
+    let acc = sensor.read().unwrap();
+    println!("X: {:2}, Y: {:2}, Z: {:2}", acc.x, acc.y, acc.z);
+}
+```
+
 ## Support
 
 For questions, issues, feature requests, and other changes, please file an

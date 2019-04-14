@@ -46,6 +46,32 @@ pub enum Resolution {
     High,
 }
 
+/// KXCJ9-1008 G scale (up to +/-8g)
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum GScale8 {
+    /// Range: +/-2g
+    G2,
+    /// Range: +/-4g
+    G4,
+    /// Range: +/-8g
+    G8,
+    /// Range: +/-8g Full Power (selects 14-bit resolution)
+    G8FP,
+}
+
+/// KXCJ9-1018 G scale (up to +/-16g)
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum GScale16 {
+    /// Range: +/-4g
+    G4,
+    /// Range: +/-8g
+    G8,
+    /// Range: +/-16g
+    G16,
+    /// Range: +/-16g Full Power (selects 14-bit resolution)
+    G16FP,
+}
+
 /// Output data rate
 #[derive(Debug, Clone, Copy)]
 pub enum OutputDataRate {
@@ -113,6 +139,8 @@ struct BitFlags;
 impl BitFlags {
     const PC1: u8 = 0b1000_0000;
     const RES: u8 = 0b0100_0000;
+    const GSEL1: u8 = 0b0001_0000;
+    const GSEL0: u8 = 0b0000_1000;
 }
 
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
@@ -285,6 +313,50 @@ where
         self.i2c
             .write(self.address, &[reg_addr, value])
             .map_err(Error::I2C)
+    }
+}
+
+impl<I2C, E> Kxcj9<I2C, ic::Kxcj9_1018>
+where
+    I2C: i2c::WriteRead<Error = E> + i2c::Write<Error = E>,
+{
+    /// Set G scale.
+    pub fn set_scale(&mut self, scale: GScale16) -> Result<(), Error<E>> {
+        use BitFlags as BF;
+        let config = match scale {
+            GScale16::G4 => self.ctrl1.with_low(BF::GSEL0).with_low(BF::GSEL1),
+            GScale16::G8 => self.ctrl1.with_high(BF::GSEL0).with_low(BF::GSEL1),
+            GScale16::G16 => self.ctrl1.with_low(BF::GSEL0).with_high(BF::GSEL1),
+            GScale16::G16FP => self
+                .ctrl1
+                .with_high(BF::RES)
+                .with_high(BF::GSEL0)
+                .with_high(BF::GSEL1),
+        };
+        self.prepare_ctrl1_to_change_settings()?;
+        self.update_ctrl1(config)
+    }
+}
+
+impl<I2C, E> Kxcj9<I2C, ic::Kxcj9_1008>
+where
+    I2C: i2c::WriteRead<Error = E> + i2c::Write<Error = E>,
+{
+    /// Set G scale.
+    pub fn set_scale(&mut self, scale: GScale8) -> Result<(), Error<E>> {
+        use BitFlags as BF;
+        let config = match scale {
+            GScale8::G2 => self.ctrl1.with_low(BF::GSEL0).with_low(BF::GSEL1),
+            GScale8::G4 => self.ctrl1.with_high(BF::GSEL0).with_low(BF::GSEL1),
+            GScale8::G8 => self.ctrl1.with_low(BF::GSEL0).with_high(BF::GSEL1),
+            GScale8::G8FP => self
+                .ctrl1
+                .with_high(BF::RES)
+                .with_high(BF::GSEL0)
+                .with_high(BF::GSEL1),
+        };
+        self.prepare_ctrl1_to_change_settings()?;
+        self.update_ctrl1(config)
     }
 }
 

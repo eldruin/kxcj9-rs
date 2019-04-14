@@ -1,7 +1,7 @@
 extern crate embedded_hal_mock as hal;
 extern crate kxcj9;
 use hal::i2c::{Mock as I2cMock, Transaction as I2cTrans};
-use kxcj9::{ic, Kxcj9, OutputDataRate, Resolution, SlaveAddr};
+use kxcj9::{ic, GScale16, GScale8, Kxcj9, OutputDataRate, Resolution, SlaveAddr};
 
 const DEV_ADDR: u8 = 0xE;
 
@@ -16,6 +16,12 @@ struct BitFlags;
 impl BitFlags {
     const PC1: u8 = 0b1000_0000;
     const RES: u8 = 0b0100_0000;
+    const GSEL1: u8 = 0b0001_0000;
+    const GSEL0: u8 = 0b0000_1000;
+}
+
+pub fn new_1008(transactions: &[I2cTrans]) -> Kxcj9<I2cMock, ic::Kxcj9_1008> {
+    Kxcj9::new_1008(I2cMock::new(&transactions), SlaveAddr::default())
 }
 
 pub fn new_1018(transactions: &[I2cTrans]) -> Kxcj9<I2cMock, ic::Kxcj9_1018> {
@@ -169,3 +175,38 @@ set_odr_test!(set_odr_hz200, Hz200, 4);
 set_odr_test!(set_odr_hz400, Hz400, 5);
 set_odr_test!(set_odr_hz800, Hz800, 6);
 set_odr_test!(set_odr_hz1600, Hz1600, 7);
+
+macro_rules! set_gscale_test {
+    ($name:ident, $create:ident, $scale:expr, $expected:expr) => {
+        #[test]
+        fn $name() {
+            let transactions = [
+                I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0]),
+                I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, $expected]),
+            ];
+            let mut sensor = $create(&transactions);
+            sensor.set_scale($scale).unwrap();
+            destroy(sensor);
+        }
+    };
+}
+
+set_gscale_test!(set_gscale16_4g, new_1018, GScale16::G4, 0);
+set_gscale_test!(set_gscale16_8g, new_1018, GScale16::G8, BitFlags::GSEL0);
+set_gscale_test!(set_gscale16_16g, new_1018, GScale16::G16, BitFlags::GSEL1);
+set_gscale_test!(
+    set_gscale16_16g_fp,
+    new_1018,
+    GScale16::G16FP,
+    BitFlags::GSEL0 | BitFlags::GSEL1 | BitFlags::RES
+);
+
+set_gscale_test!(set_gscale8_2g, new_1008, GScale8::G2, 0);
+set_gscale_test!(set_gscale8_4g, new_1008, GScale8::G4, BitFlags::GSEL0);
+set_gscale_test!(set_gscale8_8g, new_1008, GScale8::G8, BitFlags::GSEL1);
+set_gscale_test!(
+    set_gscale8_8g_fp,
+    new_1008,
+    GScale8::G8FP,
+    BitFlags::GSEL0 | BitFlags::GSEL1 | BitFlags::RES
+);

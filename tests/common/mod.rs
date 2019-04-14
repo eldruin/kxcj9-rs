@@ -4,6 +4,7 @@ use kxcj9::{ic, Kxcj9, SlaveAddr};
 pub const DEV_ADDR: u8 = 0xE;
 
 pub struct Register;
+#[allow(unused)]
 impl Register {
     pub const XOUT_L: u8 = 0x06;
     pub const WHO_AM_I: u8 = 0x0F;
@@ -12,6 +13,7 @@ impl Register {
 }
 
 pub struct BitFlags;
+#[allow(unused)]
 impl BitFlags {
     pub const PC1: u8 = 0b1000_0000;
     pub const RES: u8 = 0b0100_0000;
@@ -19,10 +21,12 @@ impl BitFlags {
     pub const GSEL0: u8 = 0b0000_1000;
 }
 
+#[allow(unused)]
 pub fn new_1008(transactions: &[I2cTrans]) -> Kxcj9<I2cMock, ic::Kxcj9_1008> {
     Kxcj9::new_1008(I2cMock::new(&transactions), SlaveAddr::default())
 }
 
+#[allow(unused)]
 pub fn new_1018(transactions: &[I2cTrans]) -> Kxcj9<I2cMock, ic::Kxcj9_1018> {
     Kxcj9::new_1018(I2cMock::new(&transactions), SlaveAddr::default())
 }

@@ -1,10 +1,12 @@
 use {
+    conversion::{convert_12bit, convert_14bit, convert_8bit},
     i2c, ic, Config, Error, GScale16, GScale8, Kxcj9, OutputDataRate, PhantomData, Resolution,
-    SlaveAddr, DEVICE_BASE_ADDRESS,
+    SlaveAddr, UnscaledMeasurement, DEVICE_BASE_ADDRESS,
 };
 
 struct Register;
 impl Register {
+    const XOUT_L: u8 = 0x06;
     const WHO_AM_I: u8 = 0x0F;
     const CTRL1: u8 = 0x1B;
     const DATA_CTRL: u8 = 0x21;
@@ -16,6 +18,12 @@ impl BitFlags {
     const RES: u8 = 0b0100_0000;
     const GSEL1: u8 = 0b0001_0000;
     const GSEL0: u8 = 0b0000_1000;
+}
+
+enum MeasurementBits {
+    _8bit,
+    _12bit,
+    _14bit,
 }
 
 impl<I2C, E> Kxcj9<I2C, ic::Kxcj9_1008>
@@ -69,6 +77,43 @@ where
     pub fn disable(&mut self) -> Result<(), Error<E>> {
         let config = self.ctrl1.with_low(BitFlags::PC1);
         self.update_ctrl1(config)
+    }
+
+    /// Read unscaled acceleration sensor data
+    pub fn read_unscaled(&mut self) -> Result<UnscaledMeasurement, Error<E>> {
+        let mut data = [0; 6];
+        self.i2c
+            .write_read(self.address, &[Register::XOUT_L], &mut data)
+            .map_err(Error::I2C)?;
+        let m = match self.get_measurement_bits() {
+            MeasurementBits::_8bit => convert_8bit(data[0], data[2], data[4]),
+            MeasurementBits::_12bit => convert_12bit(
+                u16::from(data[0]) | u16::from(data[1]) << 8,
+                u16::from(data[2]) | u16::from(data[3]) << 8,
+                u16::from(data[4]) | u16::from(data[5]) << 8,
+            ),
+            MeasurementBits::_14bit => convert_14bit(
+                u16::from(data[0]) | u16::from(data[1]) << 8,
+                u16::from(data[2]) | u16::from(data[3]) << 8,
+                u16::from(data[4]) | u16::from(data[5]) << 8,
+            ),
+        };
+        Ok(m)
+    }
+
+    fn get_measurement_bits(&self) -> MeasurementBits {
+        let is_low_res = !self.ctrl1.is_high(BitFlags::RES);
+        if is_low_res {
+            MeasurementBits::_8bit
+        } else {
+            let on_full_power =
+                self.ctrl1.is_high(BitFlags::GSEL0) && self.ctrl1.is_high(BitFlags::GSEL1);
+            if on_full_power {
+                MeasurementBits::_14bit
+            } else {
+                MeasurementBits::_12bit
+            }
+        }
     }
 
     /// Read the `WHO_AM_I` register. This should return `0xF`.

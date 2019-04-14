@@ -29,7 +29,9 @@ use core::marker::PhantomData;
 use hal::blocking::i2c;
 
 mod types;
-pub use types::{Error, GScale16, GScale8, OutputDataRate, Resolution, SlaveAddr};
+pub use types::{
+    Error, GScale16, GScale8, OutputDataRate, Resolution, SlaveAddr, UnscaledMeasurement,
+};
 
 const DEVICE_BASE_ADDRESS: u8 = 0xE;
 
@@ -48,6 +50,9 @@ impl Config {
         Config {
             bits: self.bits & !mask,
         }
+    }
+    fn is_high(self, mask: u8) -> bool {
+        (self.bits & mask) != 0
     }
 }
 
@@ -68,6 +73,7 @@ pub struct Kxcj9<I2C, IC> {
     _ic: PhantomData<IC>,
 }
 
+mod conversion;
 mod kxcj9;
 
 mod private {

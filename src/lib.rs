@@ -38,7 +38,7 @@ pub enum Error<E> {
 }
 
 /// Measurement resolution
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Resolution {
     /// 8-bit resolution.
     Low,
@@ -73,7 +73,7 @@ pub enum GScale16 {
 }
 
 /// Output data rate
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum OutputDataRate {
     /// 0.781 Hz
     Hz0_781,

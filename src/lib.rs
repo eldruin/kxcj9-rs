@@ -3,6 +3,15 @@
 //!
 //! [`embedded-hal`]: https://github.com/rust-embedded/embedded-hal
 //!
+//! This driver allows you to:
+//! - Enable/disable the device.
+//! - Read the acceleration measurement.
+//! - Read the unscaled acceleration measurement.
+//! - Set resolution.
+//! - Set output data rate.
+//! - Set +/- G range.
+//! - Read `WHO_AM_I` register.
+//!
 //! ## The device
 //!
 //! The KXCJ9 is a high-performance, ultra-low-power, tri-axis accelerometer

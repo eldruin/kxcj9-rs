@@ -9,6 +9,15 @@
 This is a platform agnostic Rust driver for the KXCJ9 ultra-low-power tri-axis accelerometer
 (up to +/-16g) using the [`embedded-hal`] traits.
 
+This driver allows you to:
+- Enable/disable the device.
+- Read the acceleration measurement.
+- Read the unscaled acceleration measurement.
+- Set resolution.
+- Set output data rate.
+- Set +/- G range.
+- Read `WHO_AM_I` register.
+
 ## The device
 
 The KXCJ9 is a high-performance, ultra-low-power, tri-axis accelerometer designed for mobile applications. It offers our best power performance along with an embedded wake-up feature, Fast-mode I²C and up to 14-bit resolution. The KXCJ9 sensor offers improved shock, reflow, and temperature performance, and the ASIC has internal voltage regulators that allow operation from 1.8 V to 3.6 V within the specified product performance.

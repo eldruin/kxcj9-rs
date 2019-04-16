@@ -18,6 +18,7 @@ This driver allows you to:
 - Set +/- G range.
 - Read `WHO_AM_I` register.
 - Perform a software reset.
+- Run a communication self-test.
 
 ## The device
 

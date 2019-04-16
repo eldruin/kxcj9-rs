@@ -5,6 +5,8 @@ pub enum Error<E> {
     I2C(E),
     /// Invalid setting for the current configuration
     InvalidSetting,
+    /// Error occured during self-test
+    SelfTestError,
 }
 
 /// Measurement resolution

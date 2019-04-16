@@ -12,6 +12,7 @@
 //! - Set +/- G range.
 //! - Read `WHO_AM_I` register.
 //! - Perform a software reset.
+//! - Run a communication self-test.
 //!
 //! ## The device
 //!
@@ -170,6 +171,7 @@ pub struct Kxcj9<I2C, IC> {
     i2c: I2C,
     address: u8,
     ctrl1: Config,
+    ctrl2: Config,
     data_ctrl: u8,
     was_reset_started: bool,
     _ic: PhantomData<IC>,

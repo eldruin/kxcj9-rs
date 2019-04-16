@@ -7,6 +7,7 @@ use {
 struct Register;
 impl Register {
     const XOUT_L: u8 = 0x06;
+    const DCST_RESP: u8 = 0x0C;
     const WHO_AM_I: u8 = 0x0F;
     const CTRL1: u8 = 0x1B;
     const CTRL2: u8 = 0x1D;
@@ -20,6 +21,7 @@ impl BitFlags {
     const GSEL1: u8 = 0b0001_0000;
     const GSEL0: u8 = 0b0000_1000;
     const SRST: u8 = 0b1000_0000;
+    const DCST: u8 = 0b0001_0000;
 }
 
 const DATA_CTRL_DEFAULT: u8 = 0x02;
@@ -70,6 +72,7 @@ where
             i2c,
             address: address.addr(DEVICE_BASE_ADDRESS),
             ctrl1: Config::default(),
+            ctrl2: Config::default(),
             data_ctrl: DATA_CTRL_DEFAULT,
             was_reset_started: false,
             _ic: PhantomData,
@@ -87,6 +90,7 @@ where
             i2c,
             address: address.addr(DEVICE_BASE_ADDRESS),
             ctrl1: Config::default(),
+            ctrl2: Config::default(),
             data_ctrl: DATA_CTRL_DEFAULT,
             was_reset_started: false,
             _ic: PhantomData,
@@ -245,6 +249,7 @@ where
                 .map_err(Error::I2C)
                 .map_err(nb::Error::Other)?;
             self.ctrl1 = Config::default();
+            self.ctrl2 = Config::default();
             self.data_ctrl = DATA_CTRL_DEFAULT;
             self.was_reset_started = true;
             Err(nb::Error::WouldBlock)
@@ -254,6 +259,29 @@ where
     fn has_reset_finished(&mut self) -> Result<bool, Error<E>> {
         let ctrl2 = self.read_register(Register::CTRL2)?;
         Ok((ctrl2 & BitFlags::SRST) == 0)
+    }
+
+    /// Perform a digital communication self-test
+    pub fn self_test(&mut self) -> Result<(), Error<E>> {
+        let resp = self.read_register(Register::DCST_RESP)?;
+        if resp != 0x55 {
+            return Err(Error::SelfTestError);
+        }
+        let ctrl2 = self.ctrl2.with_high(BitFlags::DCST);
+        self.write_register(Register::CTRL2, ctrl2.bits)?;
+        let resp = self.read_register(Register::DCST_RESP)?;
+        if resp != 0xAA {
+            return Err(Error::SelfTestError);
+        }
+        let ctrl2 = self.read_register(Register::CTRL2)?;
+        if (ctrl2 & BitFlags::DCST) != 0 {
+            return Err(Error::SelfTestError);
+        }
+        let resp = self.read_register(Register::DCST_RESP)?;
+        if resp != 0x55 {
+            return Err(Error::SelfTestError);
+        }
+        Ok(())
     }
 
     fn output_data_rate_greater_eq_400hz(&mut self) -> Result<bool, Error<E>> {

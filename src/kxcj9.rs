@@ -175,11 +175,7 @@ where
 
     /// Read the `WHO_AM_I` register. This should return `0xF`.
     pub fn who_am_i(&mut self) -> Result<u8, Error<E>> {
-        let mut data = [0];
-        self.i2c
-            .write_read(self.address, &[Register::WHO_AM_I], &mut data)
-            .map_err(Error::I2C)?;
-        Ok(data[0])
+        self.read_register(Register::WHO_AM_I)
     }
 
     /// Set resolution.
@@ -256,19 +252,13 @@ where
     }
 
     fn has_reset_finished(&mut self) -> Result<bool, Error<E>> {
-        let mut ctrl2 = [0];
-        self.i2c
-            .write_read(self.address, &[Register::CTRL2], &mut ctrl2)
-            .map_err(Error::I2C)?;
-        Ok((ctrl2[0] & BitFlags::SRST) == 0)
+        let ctrl2 = self.read_register(Register::CTRL2)?;
+        Ok((ctrl2 & BitFlags::SRST) == 0)
     }
 
     fn output_data_rate_greater_eq_400hz(&mut self) -> Result<bool, Error<E>> {
-        let mut data_ctrl = [0];
-        self.i2c
-            .write_read(self.address, &[Register::DATA_CTRL], &mut data_ctrl)
-            .map_err(Error::I2C)?;
-        Ok(data_ctrl[0] >= 0b000_0101 && data_ctrl[0] <= 0b000_0111)
+        let data_ctrl = self.read_register(Register::DATA_CTRL)?;
+        Ok(data_ctrl >= 0b000_0101 && data_ctrl <= 0b000_0111)
     }
 
     /// Ensure PC1 in CTRL1 is set to 0 before changing settings
@@ -286,6 +276,14 @@ where
         self.i2c
             .write(self.address, &[reg_addr, value])
             .map_err(Error::I2C)
+    }
+
+    fn read_register(&mut self, reg_addr: u8) -> Result<u8, Error<E>> {
+        let mut data = [0];
+        self.i2c
+            .write_read(self.address, &[reg_addr], &mut data)
+            .map_err(Error::I2C)
+            .and(Ok(data[0]))
     }
 }
 

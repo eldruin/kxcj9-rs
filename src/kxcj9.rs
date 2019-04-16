@@ -20,6 +20,8 @@ impl BitFlags {
     const GSEL0: u8 = 0b0000_1000;
 }
 
+const DATA_CTRL_DEFAULT: u8 = 0x02;
+
 #[doc(hidden)]
 pub enum MeasurementBits {
     _8bit,
@@ -66,7 +68,7 @@ where
             i2c,
             address: address.addr(DEVICE_BASE_ADDRESS),
             ctrl1: Config::default(),
-            data_ctrl: 0x02,
+            data_ctrl: DATA_CTRL_DEFAULT,
             _ic: PhantomData,
         }
     }
@@ -82,7 +84,7 @@ where
             i2c,
             address: address.addr(DEVICE_BASE_ADDRESS),
             ctrl1: Config::default(),
-            data_ctrl: 0x02,
+            data_ctrl: DATA_CTRL_DEFAULT,
             _ic: PhantomData,
         }
     }

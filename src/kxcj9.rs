@@ -1,6 +1,6 @@
 use {
     conversion::{convert_12bit, convert_14bit, convert_8bit},
-    i2c, ic, Config, Error, GScale16, GScale8, Kxcj9, Measurement, OutputDataRate, PhantomData,
+    i2c, ic, nb, Config, Error, GScale16, GScale8, Kxcj9, Measurement, OutputDataRate, PhantomData,
     Resolution, ScaleMeasurement, SlaveAddr, UnscaledMeasurement, DEVICE_BASE_ADDRESS,
 };
 
@@ -9,6 +9,7 @@ impl Register {
     const XOUT_L: u8 = 0x06;
     const WHO_AM_I: u8 = 0x0F;
     const CTRL1: u8 = 0x1B;
+    const CTRL2: u8 = 0x1D;
     const DATA_CTRL: u8 = 0x21;
 }
 
@@ -18,6 +19,7 @@ impl BitFlags {
     const RES: u8 = 0b0100_0000;
     const GSEL1: u8 = 0b0001_0000;
     const GSEL0: u8 = 0b0000_1000;
+    const SRST: u8 = 0b1000_0000;
 }
 
 const DATA_CTRL_DEFAULT: u8 = 0x02;
@@ -69,6 +71,7 @@ where
             address: address.addr(DEVICE_BASE_ADDRESS),
             ctrl1: Config::default(),
             data_ctrl: DATA_CTRL_DEFAULT,
+            was_reset_started: false,
             _ic: PhantomData,
         }
     }
@@ -85,6 +88,7 @@ where
             address: address.addr(DEVICE_BASE_ADDRESS),
             ctrl1: Config::default(),
             data_ctrl: DATA_CTRL_DEFAULT,
+            was_reset_started: false,
             _ic: PhantomData,
         }
     }
@@ -226,6 +230,37 @@ where
         } else {
             Ok(())
         }
+    }
+
+    /// Perform software reset
+    ///
+    /// This method offers a non-blocking interface. While the reset is in
+    /// progress and when the reset was first triggered this will
+    /// return `nb::Error::WouldBlock`.
+    pub fn reset(&mut self) -> nb::Result<(), Error<E>> {
+        if !self.has_reset_finished().map_err(nb::Error::Other)? {
+            Err(nb::Error::WouldBlock)
+        } else if self.was_reset_started {
+            self.was_reset_started = false;
+            Ok(())
+        } else {
+            self.i2c
+                .write(self.address, &[Register::CTRL2, BitFlags::SRST])
+                .map_err(Error::I2C)
+                .map_err(nb::Error::Other)?;
+            self.ctrl1 = Config::default();
+            self.data_ctrl = DATA_CTRL_DEFAULT;
+            self.was_reset_started = true;
+            Err(nb::Error::WouldBlock)
+        }
+    }
+
+    fn has_reset_finished(&mut self) -> Result<bool, Error<E>> {
+        let mut ctrl2 = [0];
+        self.i2c
+            .write_read(self.address, &[Register::CTRL2], &mut ctrl2)
+            .map_err(Error::I2C)?;
+        Ok((ctrl2[0] & BitFlags::SRST) == 0)
     }
 
     fn output_data_rate_greater_eq_400hz(&mut self) -> Result<bool, Error<E>> {

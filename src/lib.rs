@@ -11,6 +11,7 @@
 //! - Set output data rate.
 //! - Set +/- G range.
 //! - Read `WHO_AM_I` register.
+//! - Perform a software reset.
 //!
 //! ## The device
 //!
@@ -102,11 +103,28 @@
 //! sensor.set_output_data_rate(OutputDataRate::Hz200).unwrap();
 //! # }
 //! ```
+//!
+//! ### Perform a software reset and wait for it to finish
+//!
+//! ```no_run
+//! extern crate kxcj9;
+//! extern crate linux_embedded_hal as hal;
+//! #[macro_use(block)]
+//! extern crate nb;
+//! use kxcj9::{Kxcj9, OutputDataRate, SlaveAddr};
+//!
+//! # fn main() {
+//! let dev = hal::I2cdev::new("/dev/i2c-1").unwrap();
+//! let mut sensor = Kxcj9::new_1018(dev, SlaveAddr::default());
+//! block!(sensor.reset());
+//! # }
+//! ```
 
 #![deny(unsafe_code, missing_docs)]
 #![no_std]
 
 extern crate embedded_hal as hal;
+extern crate nb;
 use core::marker::PhantomData;
 use hal::blocking::i2c;
 
@@ -153,6 +171,7 @@ pub struct Kxcj9<I2C, IC> {
     address: u8,
     ctrl1: Config,
     data_ctrl: u8,
+    was_reset_started: bool,
     _ic: PhantomData<IC>,
 }
 

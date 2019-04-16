@@ -184,3 +184,23 @@ set_gscale_test!(
     GScale8::G8FP,
     BitFlags::GSEL0 | BitFlags::GSEL1 | BitFlags::RES
 );
+
+#[test]
+fn can_trigger_sw_reset_then_driver_configuration_is_reset() {
+    let transactions = [
+        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0]),
+        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, BitFlags::RES]),
+        I2cTrans::write_read(DEV_ADDR, vec![Register::CTRL2], vec![0]),
+        I2cTrans::write(DEV_ADDR, vec![Register::CTRL2, BitFlags::SRST]),
+        I2cTrans::write_read(DEV_ADDR, vec![Register::CTRL2], vec![BitFlags::SRST]),
+        I2cTrans::write_read(DEV_ADDR, vec![Register::CTRL2], vec![0]),
+        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, BitFlags::PC1]),
+    ];
+    let mut sensor = new_1018(&transactions);
+    sensor.set_resolution(Resolution::High).unwrap();
+    sensor.reset().expect_err("Should return WouldBlock error"); // trigger reset
+    sensor.reset().expect_err("Should return WouldBlock error"); // reset still not finished
+    sensor.reset().unwrap(); // reset finished
+    sensor.enable().unwrap();
+    destroy(sensor);
+}

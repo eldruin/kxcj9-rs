@@ -109,6 +109,26 @@ fn can_read_12bit_8g_1018() {
 }
 
 #[test]
+fn can_read_12bit_16g_1018() {
+    use BitFlags as BF;
+    let transactions = [
+        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0]),
+        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, BF::RES]),
+        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, BF::RES]),
+        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, BF::RES | BF::GSEL1]),
+        I2cTrans::write_read(DEV_ADDR, vec![Register::XOUT_L], vec![1, 0, 255, 3, 255, 7]),
+    ];
+    let mut sensor = new_1018(&transactions);
+    sensor.set_resolution(Resolution::High).unwrap();
+    sensor.set_scale(GScale16::G16).unwrap();
+    let measurement = sensor.read().unwrap();
+    assert_near_positive(0.0, measurement.x);
+    assert_near_positive(8.0, measurement.y);
+    assert_near_positive(16.0, measurement.z);
+    destroy(sensor);
+}
+
+#[test]
 fn can_read_14bit_16g_1018() {
     use BitFlags as BF;
     let transactions = [

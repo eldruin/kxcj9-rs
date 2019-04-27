@@ -1,14 +1,16 @@
 use {
     conversion::{convert_12bit, convert_14bit, convert_8bit},
-    i2c, ic, Config, Error, GScale16, GScale8, Kxcj9, Measurement, OutputDataRate, PhantomData,
+    i2c, ic, nb, Config, Error, GScale16, GScale8, Kxcj9, Measurement, OutputDataRate, PhantomData,
     Resolution, ScaleMeasurement, SlaveAddr, UnscaledMeasurement, DEVICE_BASE_ADDRESS,
 };
 
 struct Register;
 impl Register {
     const XOUT_L: u8 = 0x06;
+    const DCST_RESP: u8 = 0x0C;
     const WHO_AM_I: u8 = 0x0F;
     const CTRL1: u8 = 0x1B;
+    const CTRL2: u8 = 0x1D;
     const DATA_CTRL: u8 = 0x21;
 }
 
@@ -18,7 +20,11 @@ impl BitFlags {
     const RES: u8 = 0b0100_0000;
     const GSEL1: u8 = 0b0001_0000;
     const GSEL0: u8 = 0b0000_1000;
+    const SRST: u8 = 0b1000_0000;
+    const DCST: u8 = 0b0001_0000;
 }
+
+const DATA_CTRL_DEFAULT: u8 = 0x02;
 
 #[doc(hidden)]
 pub enum MeasurementBits {
@@ -66,7 +72,9 @@ where
             i2c,
             address: address.addr(DEVICE_BASE_ADDRESS),
             ctrl1: Config::default(),
-            data_ctrl: 0x02,
+            ctrl2: Config::default(),
+            data_ctrl: DATA_CTRL_DEFAULT,
+            was_reset_started: false,
             _ic: PhantomData,
         }
     }
@@ -82,7 +90,9 @@ where
             i2c,
             address: address.addr(DEVICE_BASE_ADDRESS),
             ctrl1: Config::default(),
-            data_ctrl: 0x02,
+            ctrl2: Config::default(),
+            data_ctrl: DATA_CTRL_DEFAULT,
+            was_reset_started: false,
             _ic: PhantomData,
         }
     }
@@ -169,11 +179,7 @@ where
 
     /// Read the `WHO_AM_I` register. This should return `0xF`.
     pub fn who_am_i(&mut self) -> Result<u8, Error<E>> {
-        let mut data = [0];
-        self.i2c
-            .write_read(self.address, &[Register::WHO_AM_I], &mut data)
-            .map_err(Error::I2C)?;
-        Ok(data[0])
+        self.read_register(Register::WHO_AM_I)
     }
 
     /// Set resolution.
@@ -226,12 +232,61 @@ where
         }
     }
 
+    /// Perform software reset
+    ///
+    /// This method offers a non-blocking interface. While the reset is in
+    /// progress and when the reset was first triggered this will
+    /// return `nb::Error::WouldBlock`.
+    pub fn reset(&mut self) -> nb::Result<(), Error<E>> {
+        if !self.has_reset_finished().map_err(nb::Error::Other)? {
+            Err(nb::Error::WouldBlock)
+        } else if self.was_reset_started {
+            self.was_reset_started = false;
+            Ok(())
+        } else {
+            self.i2c
+                .write(self.address, &[Register::CTRL2, BitFlags::SRST])
+                .map_err(Error::I2C)
+                .map_err(nb::Error::Other)?;
+            self.ctrl1 = Config::default();
+            self.ctrl2 = Config::default();
+            self.data_ctrl = DATA_CTRL_DEFAULT;
+            self.was_reset_started = true;
+            Err(nb::Error::WouldBlock)
+        }
+    }
+
+    fn has_reset_finished(&mut self) -> Result<bool, Error<E>> {
+        let ctrl2 = self.read_register(Register::CTRL2)?;
+        Ok((ctrl2 & BitFlags::SRST) == 0)
+    }
+
+    /// Perform a digital communication self-test
+    pub fn self_test(&mut self) -> Result<(), Error<E>> {
+        let resp = self.read_register(Register::DCST_RESP)?;
+        if resp != 0x55 {
+            return Err(Error::SelfTestError);
+        }
+        let ctrl2 = self.ctrl2.with_high(BitFlags::DCST);
+        self.write_register(Register::CTRL2, ctrl2.bits)?;
+        let resp = self.read_register(Register::DCST_RESP)?;
+        if resp != 0xAA {
+            return Err(Error::SelfTestError);
+        }
+        let ctrl2 = self.read_register(Register::CTRL2)?;
+        if (ctrl2 & BitFlags::DCST) != 0 {
+            return Err(Error::SelfTestError);
+        }
+        let resp = self.read_register(Register::DCST_RESP)?;
+        if resp != 0x55 {
+            return Err(Error::SelfTestError);
+        }
+        Ok(())
+    }
+
     fn output_data_rate_greater_eq_400hz(&mut self) -> Result<bool, Error<E>> {
-        let mut data_ctrl = [0];
-        self.i2c
-            .write_read(self.address, &[Register::DATA_CTRL], &mut data_ctrl)
-            .map_err(Error::I2C)?;
-        Ok(data_ctrl[0] >= 0b000_0101 && data_ctrl[0] <= 0b000_0111)
+        let data_ctrl = self.read_register(Register::DATA_CTRL)?;
+        Ok(data_ctrl >= 0b000_0101 && data_ctrl <= 0b000_0111)
     }
 
     /// Ensure PC1 in CTRL1 is set to 0 before changing settings
@@ -249,6 +304,14 @@ where
         self.i2c
             .write(self.address, &[reg_addr, value])
             .map_err(Error::I2C)
+    }
+
+    fn read_register(&mut self, reg_addr: u8) -> Result<u8, Error<E>> {
+        let mut data = [0];
+        self.i2c
+            .write_read(self.address, &[reg_addr], &mut data)
+            .map_err(Error::I2C)
+            .and(Ok(data[0]))
     }
 }
 

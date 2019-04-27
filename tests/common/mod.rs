@@ -7,8 +7,10 @@ pub struct Register;
 #[allow(unused)]
 impl Register {
     pub const XOUT_L: u8 = 0x06;
+    pub const DCST_RESP: u8 = 0x0C;
     pub const WHO_AM_I: u8 = 0x0F;
     pub const CTRL1: u8 = 0x1B;
+    pub const CTRL2: u8 = 0x1D;
     pub const DATA_CTRL: u8 = 0x21;
 }
 
@@ -19,6 +21,8 @@ impl BitFlags {
     pub const RES: u8 = 0b0100_0000;
     pub const GSEL1: u8 = 0b0001_0000;
     pub const GSEL0: u8 = 0b0000_1000;
+    pub const SRST: u8 = 0b1000_0000;
+    pub const DCST: u8 = 0b0001_0000;
 }
 
 #[allow(unused)]

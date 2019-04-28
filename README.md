@@ -10,15 +10,15 @@ This is a platform agnostic Rust driver for the KXCJ9 ultra-low-power tri-axis a
 (up to +/-16g) using the [`embedded-hal`] traits.
 
 This driver allows you to:
-- Enable/disable the device.
-- Read the acceleration measurement.
-- Read the unscaled acceleration measurement.
-- Set resolution.
-- Set output data rate.
-- Set +/- G range.
-- Read `WHO_AM_I` register.
-- Perform a software reset.
-- Run a communication self-test.
+- Enable/disable the device. See `enable()`.
+- Read the acceleration measurement. See `read()`.
+- Read the unscaled acceleration measurement. See `read_unscaled()`.
+- Set resolution. See `set_resolution()`.
+- Set output data rate. See `set_output_data_rate()`.
+- Set +/- G range. See `set_scale()`.
+- Read `WHO_AM_I` register. See `who_am_i()`.
+- Perform a software reset. See `reset()`.
+- Run a communication self-test. See `self_test()`.
 
 ## The device
 
@@ -36,7 +36,7 @@ Application Note:
 ## Usage
 
 To use this driver, import this crate and an `embedded_hal` implementation,
-then instantiate the device.
+then instantiate the appropriate device.
 
 Please find additional examples using hardware in this repository: [driver-examples]
 

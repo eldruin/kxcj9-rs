@@ -4,15 +4,25 @@
 //! [`embedded-hal`]: https://github.com/rust-embedded/embedded-hal
 //!
 //! This driver allows you to:
-//! - Enable/disable the device.
-//! - Read the acceleration measurement.
-//! - Read the unscaled acceleration measurement.
-//! - Set resolution.
-//! - Set output data rate.
-//! - Set +/- G range.
-//! - Read `WHO_AM_I` register.
-//! - Perform a software reset.
-//! - Run a communication self-test.
+//! - Enable/disable the device. See [`enable()`].
+//! - Read the acceleration measurement. See [`read()`].
+//! - Read the unscaled acceleration measurement. See [`read_unscaled()`].
+//! - Set resolution. See [`set_resolution()`].
+//! - Set output data rate. See [`set_output_data_rate()`].
+//! - Set +/- G range. See [`set_scale()`].
+//! - Read `WHO_AM_I` register. See [`who_am_i()`].
+//! - Perform a software reset. See [`reset()`].
+//! - Run a communication self-test. See [`self_test()`].
+//!
+//! [`enable()`]: struct.Kxcj9.html#method.enable
+//! [`read()`]: struct.Kxcj9.html#method.read
+//! [`read_unscaled()`]: struct.Kxcj9.html#method.read_unscaled
+//! [`set_resolution()`]: struct.Kxcj9.html#method.set_resolution
+//! [`set_output_data_rate()`]: struct.Kxcj9.html#method.set_output_data_rate
+//! [`set_scale()`]: struct.Kxcj9.html#method.set_scale
+//! [`who_am_i()`]: struct.Kxcj9.html#method.who_am_i
+//! [`reset()`]: struct.Kxcj9.html#method.reset
+//! [`self_test()`]: struct.Kxcj9.html#method.self_test
 //!
 //! ## The device
 //!
@@ -35,7 +45,7 @@
 //! ## Usage examples (see also examples folder)
 //!
 //! To use this driver, import this crate and an `embedded_hal` implementation,
-//! then instantiate the device.
+//! then instantiate the appropriate device.
 //!
 //! Please find additional examples using hardware in this repository: [driver-examples]
 //!

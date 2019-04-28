@@ -218,3 +218,54 @@ fn can_perform_self_test() {
     sensor.self_test().unwrap();
     destroy(sensor);
 }
+
+#[test]
+fn self_test_can_fail_in_step1() {
+    let transactions = [I2cTrans::write_read(
+        DEV_ADDR,
+        vec![Register::DCST_RESP],
+        vec![0x56],
+    )];
+    let mut sensor = new_1018(&transactions);
+    sensor.self_test().expect_err("Should return error");
+    destroy(sensor);
+}
+
+#[test]
+fn self_test_can_fail_in_step2() {
+    let transactions = [
+        I2cTrans::write_read(DEV_ADDR, vec![Register::DCST_RESP], vec![0x55]),
+        I2cTrans::write(DEV_ADDR, vec![Register::CTRL2, BitFlags::DCST]),
+        I2cTrans::write_read(DEV_ADDR, vec![Register::DCST_RESP], vec![0xAB]),
+    ];
+    let mut sensor = new_1018(&transactions);
+    sensor.self_test().expect_err("Should return error");
+    destroy(sensor);
+}
+
+#[test]
+fn self_test_can_fail_in_step3() {
+    let transactions = [
+        I2cTrans::write_read(DEV_ADDR, vec![Register::DCST_RESP], vec![0x55]),
+        I2cTrans::write(DEV_ADDR, vec![Register::CTRL2, BitFlags::DCST]),
+        I2cTrans::write_read(DEV_ADDR, vec![Register::DCST_RESP], vec![0xAA]),
+        I2cTrans::write_read(DEV_ADDR, vec![Register::CTRL2], vec![BitFlags::DCST]),
+    ];
+    let mut sensor = new_1018(&transactions);
+    sensor.self_test().expect_err("Should return error");
+    destroy(sensor);
+}
+
+#[test]
+fn self_test_can_fail_in_step4() {
+    let transactions = [
+        I2cTrans::write_read(DEV_ADDR, vec![Register::DCST_RESP], vec![0x55]),
+        I2cTrans::write(DEV_ADDR, vec![Register::CTRL2, BitFlags::DCST]),
+        I2cTrans::write_read(DEV_ADDR, vec![Register::DCST_RESP], vec![0xAA]),
+        I2cTrans::write_read(DEV_ADDR, vec![Register::CTRL2], vec![0]),
+        I2cTrans::write_read(DEV_ADDR, vec![Register::DCST_RESP], vec![0x56]),
+    ];
+    let mut sensor = new_1018(&transactions);
+    sensor.self_test().expect_err("Should return error");
+    destroy(sensor);
+}

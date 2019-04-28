@@ -50,6 +50,7 @@ macro_rules! cannot_set_res_low_for_odr {
             let transactions = [
                 I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0]),
                 I2cTrans::write(DEV_ADDR, vec![Register::DATA_CTRL, $value]),
+                I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, BitFlags::RES]),
                 I2cTrans::write_read(DEV_ADDR, vec![Register::DATA_CTRL], vec![$value]),
             ];
             let mut sensor = new_1018(&transactions);
@@ -146,9 +147,27 @@ set_odr_test!(set_odr_hz25, Hz25, 1);
 set_odr_test!(set_odr_hz50, Hz50, 2);
 set_odr_test!(set_odr_hz100, Hz100, 3);
 set_odr_test!(set_odr_hz200, Hz200, 4);
-set_odr_test!(set_odr_hz400, Hz400, 5);
-set_odr_test!(set_odr_hz800, Hz800, 6);
-set_odr_test!(set_odr_hz1600, Hz1600, 7);
+
+macro_rules! set_high_odr_test {
+    ($name:ident, $variant:ident, $expected:expr) => {
+        #[test]
+        fn $name() {
+            let transactions = [
+                I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0]),
+                I2cTrans::write(DEV_ADDR, vec![Register::DATA_CTRL, $expected]),
+                I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, BitFlags::RES]),
+            ];
+            let mut sensor = new_1018(&transactions);
+            sensor
+                .set_output_data_rate(OutputDataRate::$variant)
+                .unwrap();
+            destroy(sensor);
+        }
+    };
+}
+set_high_odr_test!(set_odr_hz400, Hz400, 5);
+set_high_odr_test!(set_odr_hz800, Hz800, 6);
+set_high_odr_test!(set_odr_hz1600, Hz1600, 7);
 
 macro_rules! set_gscale_test {
     ($name:ident, $create:ident, $scale:expr, $expected:expr) => {

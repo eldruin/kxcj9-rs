@@ -202,7 +202,9 @@ where
         self.update_ctrl1(config)
     }
 
-    /// Set output data rate
+    /// Set output data rate.
+    ///
+    /// Setting a rate higher than or equal to 400Hz sets the resolution to high.
     pub fn set_output_data_rate(&mut self, odr: OutputDataRate) -> Result<(), Error<E>> {
         use OutputDataRate as ODR;
         let config = match odr {
@@ -219,14 +221,18 @@ where
             ODR::Hz800 => 0b000_0110,
             ODR::Hz1600 => 0b000_0111,
         };
-        let previous_ctrl1 = self.ctrl1;
+        let mut new_ctrl1 = self.ctrl1;
         self.prepare_ctrl1_to_change_settings()?;
         self.i2c
             .write(self.address, &[Register::DATA_CTRL, config])
             .map_err(Error::I2C)?;
         self.data_ctrl = config;
-        if self.ctrl1 != previous_ctrl1 {
-            self.update_ctrl1(previous_ctrl1)
+        let needs_full_power = odr == ODR::Hz400 || odr == ODR::Hz800 || odr == ODR::Hz1600;
+        if needs_full_power {
+            new_ctrl1 = new_ctrl1.with_high(BitFlags::RES);
+        }
+        if self.ctrl1 != new_ctrl1 {
+            self.update_ctrl1(new_ctrl1)
         } else {
             Ok(())
         }

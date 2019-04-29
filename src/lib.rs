@@ -13,6 +13,7 @@
 //! - Read `WHO_AM_I` register. See [`who_am_i()`].
 //! - Perform a software reset. See [`reset()`].
 //! - Run a communication self-test. See [`communication_self_test()`].
+//! - Enable/disable MEMS self-test function. See [`enable_mems_self_test()`].
 //!
 //! [`enable()`]: struct.Kxcj9.html#method.enable
 //! [`read()`]: struct.Kxcj9.html#method.read
@@ -23,6 +24,7 @@
 //! [`who_am_i()`]: struct.Kxcj9.html#method.who_am_i
 //! [`reset()`]: struct.Kxcj9.html#method.reset
 //! [`communication_self_test()`]: struct.Kxcj9.html#method.communication_self_test
+//! [`enable_mems_self_test()`]: struct.Kxcj9.html#method.enable_mems_self_test
 //!
 //! ## The device
 //!

@@ -12,6 +12,7 @@ impl Register {
     pub const CTRL1: u8 = 0x1B;
     pub const CTRL2: u8 = 0x1D;
     pub const DATA_CTRL: u8 = 0x21;
+    pub const SELF_TEST: u8 = 0x3A;
 }
 
 pub struct BitFlags;

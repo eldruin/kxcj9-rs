@@ -19,6 +19,7 @@ This driver allows you to:
 - Read `WHO_AM_I` register. See `who_am_i()`.
 - Perform a software reset. See `reset()`.
 - Run a communication self-test. See `communication_self_test()`.
+- Enable/disable MEMS self-test function. See `enable_mems_self_test()`.
 
 ## The device
 

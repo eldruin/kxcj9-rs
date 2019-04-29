@@ -12,6 +12,7 @@ impl Register {
     const CTRL1: u8 = 0x1B;
     const CTRL2: u8 = 0x1D;
     const DATA_CTRL: u8 = 0x21;
+    const SELF_TEST: u8 = 0x3A;
 }
 
 struct BitFlags;
@@ -288,6 +289,16 @@ where
             return Err(Error::SelfTestError);
         }
         Ok(())
+    }
+
+    /// Enable the MEMS self-test function
+    pub fn enable_mems_self_test(&mut self) -> Result<(), Error<E>> {
+        self.write_register(Register::SELF_TEST, 0xCA)
+    }
+
+    /// Disable the MEMS self-test function
+    pub fn disable_mems_self_test(&mut self) -> Result<(), Error<E>> {
+        self.write_register(Register::SELF_TEST, 0)
     }
 
     fn output_data_rate_greater_eq_400hz(&mut self) -> Result<bool, Error<E>> {

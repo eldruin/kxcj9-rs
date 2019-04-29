@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-...
+### Changed
+- [breaking-change] Renamed communication self-test function `self_test()` to
+`communication_self_test()`.
 
 ## 0.1.0 - 2019-04-28
 

@@ -18,7 +18,7 @@ This driver allows you to:
 - Set +/- G range. See `set_scale()`.
 - Read `WHO_AM_I` register. See `who_am_i()`.
 - Perform a software reset. See `reset()`.
-- Run a communication self-test. See `self_test()`.
+- Run a communication self-test. See `communication_self_test()`.
 
 ## The device
 

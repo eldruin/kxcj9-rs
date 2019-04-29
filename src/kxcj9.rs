@@ -268,7 +268,7 @@ where
     }
 
     /// Perform a digital communication self-test
-    pub fn self_test(&mut self) -> Result<(), Error<E>> {
+    pub fn communication_self_test(&mut self) -> Result<(), Error<E>> {
         let resp = self.read_register(Register::DCST_RESP)?;
         if resp != 0x55 {
             return Err(Error::SelfTestError);

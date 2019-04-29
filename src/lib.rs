@@ -12,7 +12,7 @@
 //! - Set +/- G range. See [`set_scale()`].
 //! - Read `WHO_AM_I` register. See [`who_am_i()`].
 //! - Perform a software reset. See [`reset()`].
-//! - Run a communication self-test. See [`self_test()`].
+//! - Run a communication self-test. See [`communication_self_test()`].
 //!
 //! [`enable()`]: struct.Kxcj9.html#method.enable
 //! [`read()`]: struct.Kxcj9.html#method.read
@@ -22,7 +22,7 @@
 //! [`set_scale()`]: struct.Kxcj9.html#method.set_scale
 //! [`who_am_i()`]: struct.Kxcj9.html#method.who_am_i
 //! [`reset()`]: struct.Kxcj9.html#method.reset
-//! [`self_test()`]: struct.Kxcj9.html#method.self_test
+//! [`communication_self_test()`]: struct.Kxcj9.html#method.communication_self_test
 //!
 //! ## The device
 //!

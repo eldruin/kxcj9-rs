@@ -4,7 +4,7 @@ use hal::i2c::Transaction as I2cTrans;
 use kxcj9::{GScale16, GScale8, OutputDataRate, Resolution};
 
 mod common;
-use common::{destroy, new_1008, new_1018, BitFlags, Register, DEV_ADDR};
+use common::{destroy, new_1008, new_1018, BitFlags as BF, Register as Reg, DEV_ADDR};
 
 #[test]
 fn can_create_and_destroy() {
@@ -16,7 +16,7 @@ fn can_create_and_destroy() {
 fn can_read_who_am_i() {
     let transactions = [I2cTrans::write_read(
         DEV_ADDR,
-        vec![Register::WHO_AM_I],
+        vec![Reg::WHO_AM_I],
         vec![0x0F],
     )];
     let mut sensor = new_1018(&transactions);
@@ -26,10 +26,7 @@ fn can_read_who_am_i() {
 
 #[test]
 fn can_enable() {
-    let transactions = [I2cTrans::write(
-        DEV_ADDR,
-        vec![Register::CTRL1, BitFlags::PC1],
-    )];
+    let transactions = [I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1])];
     let mut sensor = new_1018(&transactions);
     sensor.enable().unwrap();
     destroy(sensor);
@@ -37,7 +34,7 @@ fn can_enable() {
 
 #[test]
 fn can_disable() {
-    let transactions = [I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0])];
+    let transactions = [I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, 0])];
     let mut sensor = new_1018(&transactions);
     sensor.disable().unwrap();
     destroy(sensor);
@@ -48,10 +45,10 @@ macro_rules! cannot_set_res_low_for_odr {
         #[test]
         fn $name() {
             let transactions = [
-                I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0]),
-                I2cTrans::write(DEV_ADDR, vec![Register::DATA_CTRL, $value]),
-                I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, BitFlags::RES]),
-                I2cTrans::write_read(DEV_ADDR, vec![Register::DATA_CTRL], vec![$value]),
+                I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, 0]),
+                I2cTrans::write(DEV_ADDR, vec![Reg::DATA_CTRL, $value]),
+                I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::RES]),
+                I2cTrans::write_read(DEV_ADDR, vec![Reg::DATA_CTRL], vec![$value]),
             ];
             let mut sensor = new_1018(&transactions);
             sensor
@@ -71,9 +68,9 @@ cannot_set_res_low_for_odr!(cannot_set_res_low_odr_1600, Hz1600, 7);
 #[test]
 fn can_set_resolution_low() {
     let transactions = [
-        I2cTrans::write_read(DEV_ADDR, vec![Register::DATA_CTRL], vec![4]),
-        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0]),
-        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0]),
+        I2cTrans::write_read(DEV_ADDR, vec![Reg::DATA_CTRL], vec![4]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, 0]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, 0]),
     ];
     let mut sensor = new_1018(&transactions);
     sensor.set_resolution(Resolution::Low).unwrap();
@@ -83,8 +80,8 @@ fn can_set_resolution_low() {
 #[test]
 fn can_set_resolution_high() {
     let transactions = [
-        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0]),
-        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, BitFlags::RES]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, 0]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::RES]),
     ];
     let mut sensor = new_1018(&transactions);
     sensor.set_resolution(Resolution::High).unwrap();
@@ -94,12 +91,9 @@ fn can_set_resolution_high() {
 #[test]
 fn set_resolution_keeps_enable_status() {
     let transactions = [
-        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, BitFlags::PC1]),
-        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0]),
-        I2cTrans::write(
-            DEV_ADDR,
-            vec![Register::CTRL1, BitFlags::PC1 | BitFlags::RES],
-        ),
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, 0]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1 | BF::RES]),
     ];
     let mut sensor = new_1018(&transactions);
     sensor.enable().unwrap();
@@ -110,10 +104,10 @@ fn set_resolution_keeps_enable_status() {
 #[test]
 fn set_odr_keeps_enable_status() {
     let transactions = [
-        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, BitFlags::PC1]),
-        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0]),
-        I2cTrans::write(DEV_ADDR, vec![Register::DATA_CTRL, 2]),
-        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, BitFlags::PC1]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, 0]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::DATA_CTRL, 2]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1]),
     ];
     let mut sensor = new_1018(&transactions);
     sensor.enable().unwrap();
@@ -126,8 +120,8 @@ macro_rules! set_odr_test {
         #[test]
         fn $name() {
             let transactions = [
-                I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0]),
-                I2cTrans::write(DEV_ADDR, vec![Register::DATA_CTRL, $expected]),
+                I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, 0]),
+                I2cTrans::write(DEV_ADDR, vec![Reg::DATA_CTRL, $expected]),
             ];
             let mut sensor = new_1018(&transactions);
             sensor
@@ -153,9 +147,9 @@ macro_rules! set_high_odr_test {
         #[test]
         fn $name() {
             let transactions = [
-                I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0]),
-                I2cTrans::write(DEV_ADDR, vec![Register::DATA_CTRL, $expected]),
-                I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, BitFlags::RES]),
+                I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, 0]),
+                I2cTrans::write(DEV_ADDR, vec![Reg::DATA_CTRL, $expected]),
+                I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::RES]),
             ];
             let mut sensor = new_1018(&transactions);
             sensor
@@ -174,8 +168,8 @@ macro_rules! set_gscale_test {
         #[test]
         fn $name() {
             let transactions = [
-                I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0]),
-                I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, $expected]),
+                I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, 0]),
+                I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, $expected]),
             ];
             let mut sensor = $create(&transactions);
             sensor.set_scale($scale).unwrap();
@@ -185,35 +179,35 @@ macro_rules! set_gscale_test {
 }
 
 set_gscale_test!(set_gscale16_4g, new_1018, GScale16::G4, 0);
-set_gscale_test!(set_gscale16_8g, new_1018, GScale16::G8, BitFlags::GSEL0);
-set_gscale_test!(set_gscale16_16g, new_1018, GScale16::G16, BitFlags::GSEL1);
+set_gscale_test!(set_gscale16_8g, new_1018, GScale16::G8, BF::GSEL0);
+set_gscale_test!(set_gscale16_16g, new_1018, GScale16::G16, BF::GSEL1);
 set_gscale_test!(
     set_gscale16_16g_fp,
     new_1018,
     GScale16::G16FP,
-    BitFlags::GSEL0 | BitFlags::GSEL1 | BitFlags::RES
+    BF::GSEL0 | BF::GSEL1 | BF::RES
 );
 
 set_gscale_test!(set_gscale8_2g, new_1008, GScale8::G2, 0);
-set_gscale_test!(set_gscale8_4g, new_1008, GScale8::G4, BitFlags::GSEL0);
-set_gscale_test!(set_gscale8_8g, new_1008, GScale8::G8, BitFlags::GSEL1);
+set_gscale_test!(set_gscale8_4g, new_1008, GScale8::G4, BF::GSEL0);
+set_gscale_test!(set_gscale8_8g, new_1008, GScale8::G8, BF::GSEL1);
 set_gscale_test!(
     set_gscale8_8g_fp,
     new_1008,
     GScale8::G8FP,
-    BitFlags::GSEL0 | BitFlags::GSEL1 | BitFlags::RES
+    BF::GSEL0 | BF::GSEL1 | BF::RES
 );
 
 #[test]
 fn can_trigger_sw_reset_then_driver_configuration_is_reset() {
     let transactions = [
-        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, 0]),
-        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, BitFlags::RES]),
-        I2cTrans::write_read(DEV_ADDR, vec![Register::CTRL2], vec![0]),
-        I2cTrans::write(DEV_ADDR, vec![Register::CTRL2, BitFlags::SRST]),
-        I2cTrans::write_read(DEV_ADDR, vec![Register::CTRL2], vec![BitFlags::SRST]),
-        I2cTrans::write_read(DEV_ADDR, vec![Register::CTRL2], vec![0]),
-        I2cTrans::write(DEV_ADDR, vec![Register::CTRL1, BitFlags::PC1]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, 0]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::RES]),
+        I2cTrans::write_read(DEV_ADDR, vec![Reg::CTRL2], vec![0]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL2, BF::SRST]),
+        I2cTrans::write_read(DEV_ADDR, vec![Reg::CTRL2], vec![BF::SRST]),
+        I2cTrans::write_read(DEV_ADDR, vec![Reg::CTRL2], vec![0]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1]),
     ];
     let mut sensor = new_1018(&transactions);
     sensor.set_resolution(Resolution::High).unwrap();
@@ -227,11 +221,11 @@ fn can_trigger_sw_reset_then_driver_configuration_is_reset() {
 #[test]
 fn can_perform_communication_self_test() {
     let transactions = [
-        I2cTrans::write_read(DEV_ADDR, vec![Register::DCST_RESP], vec![0x55]),
-        I2cTrans::write(DEV_ADDR, vec![Register::CTRL2, BitFlags::DCST]),
-        I2cTrans::write_read(DEV_ADDR, vec![Register::DCST_RESP], vec![0xAA]),
-        I2cTrans::write_read(DEV_ADDR, vec![Register::CTRL2], vec![0]),
-        I2cTrans::write_read(DEV_ADDR, vec![Register::DCST_RESP], vec![0x55]),
+        I2cTrans::write_read(DEV_ADDR, vec![Reg::DCST_RESP], vec![0x55]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL2, BF::DCST]),
+        I2cTrans::write_read(DEV_ADDR, vec![Reg::DCST_RESP], vec![0xAA]),
+        I2cTrans::write_read(DEV_ADDR, vec![Reg::CTRL2], vec![0]),
+        I2cTrans::write_read(DEV_ADDR, vec![Reg::DCST_RESP], vec![0x55]),
     ];
     let mut sensor = new_1018(&transactions);
     sensor.communication_self_test().unwrap();
@@ -242,7 +236,7 @@ fn can_perform_communication_self_test() {
 fn communication_self_test_can_fail_in_step1() {
     let transactions = [I2cTrans::write_read(
         DEV_ADDR,
-        vec![Register::DCST_RESP],
+        vec![Reg::DCST_RESP],
         vec![0x56],
     )];
     let mut sensor = new_1018(&transactions);
@@ -255,9 +249,9 @@ fn communication_self_test_can_fail_in_step1() {
 #[test]
 fn communication_self_test_can_fail_in_step2() {
     let transactions = [
-        I2cTrans::write_read(DEV_ADDR, vec![Register::DCST_RESP], vec![0x55]),
-        I2cTrans::write(DEV_ADDR, vec![Register::CTRL2, BitFlags::DCST]),
-        I2cTrans::write_read(DEV_ADDR, vec![Register::DCST_RESP], vec![0xAB]),
+        I2cTrans::write_read(DEV_ADDR, vec![Reg::DCST_RESP], vec![0x55]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL2, BF::DCST]),
+        I2cTrans::write_read(DEV_ADDR, vec![Reg::DCST_RESP], vec![0xAB]),
     ];
     let mut sensor = new_1018(&transactions);
     sensor
@@ -269,10 +263,10 @@ fn communication_self_test_can_fail_in_step2() {
 #[test]
 fn communication_self_test_can_fail_in_step3() {
     let transactions = [
-        I2cTrans::write_read(DEV_ADDR, vec![Register::DCST_RESP], vec![0x55]),
-        I2cTrans::write(DEV_ADDR, vec![Register::CTRL2, BitFlags::DCST]),
-        I2cTrans::write_read(DEV_ADDR, vec![Register::DCST_RESP], vec![0xAA]),
-        I2cTrans::write_read(DEV_ADDR, vec![Register::CTRL2], vec![BitFlags::DCST]),
+        I2cTrans::write_read(DEV_ADDR, vec![Reg::DCST_RESP], vec![0x55]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL2, BF::DCST]),
+        I2cTrans::write_read(DEV_ADDR, vec![Reg::DCST_RESP], vec![0xAA]),
+        I2cTrans::write_read(DEV_ADDR, vec![Reg::CTRL2], vec![BF::DCST]),
     ];
     let mut sensor = new_1018(&transactions);
     sensor
@@ -284,11 +278,11 @@ fn communication_self_test_can_fail_in_step3() {
 #[test]
 fn communication_self_test_can_fail_in_step4() {
     let transactions = [
-        I2cTrans::write_read(DEV_ADDR, vec![Register::DCST_RESP], vec![0x55]),
-        I2cTrans::write(DEV_ADDR, vec![Register::CTRL2, BitFlags::DCST]),
-        I2cTrans::write_read(DEV_ADDR, vec![Register::DCST_RESP], vec![0xAA]),
-        I2cTrans::write_read(DEV_ADDR, vec![Register::CTRL2], vec![0]),
-        I2cTrans::write_read(DEV_ADDR, vec![Register::DCST_RESP], vec![0x56]),
+        I2cTrans::write_read(DEV_ADDR, vec![Reg::DCST_RESP], vec![0x55]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL2, BF::DCST]),
+        I2cTrans::write_read(DEV_ADDR, vec![Reg::DCST_RESP], vec![0xAA]),
+        I2cTrans::write_read(DEV_ADDR, vec![Reg::CTRL2], vec![0]),
+        I2cTrans::write_read(DEV_ADDR, vec![Reg::DCST_RESP], vec![0x56]),
     ];
     let mut sensor = new_1018(&transactions);
     sensor
@@ -299,7 +293,7 @@ fn communication_self_test_can_fail_in_step4() {
 
 #[test]
 fn can_enable_mems_self_test() {
-    let transactions = [I2cTrans::write(DEV_ADDR, vec![Register::SELF_TEST, 0xCA])];
+    let transactions = [I2cTrans::write(DEV_ADDR, vec![Reg::SELF_TEST, 0xCA])];
     let mut sensor = new_1018(&transactions);
     sensor.enable_mems_self_test().unwrap();
     destroy(sensor);
@@ -307,7 +301,7 @@ fn can_enable_mems_self_test() {
 
 #[test]
 fn can_disable_mems_self_test() {
-    let transactions = [I2cTrans::write(DEV_ADDR, vec![Register::SELF_TEST, 0])];
+    let transactions = [I2cTrans::write(DEV_ADDR, vec![Reg::SELF_TEST, 0])];
     let mut sensor = new_1018(&transactions);
     sensor.disable_mems_self_test().unwrap();
     destroy(sensor);
@@ -315,7 +309,11 @@ fn can_disable_mems_self_test() {
 
 #[test]
 fn interrupt_has_happened() {
-    let transactions = [I2cTrans::write_read(DEV_ADDR, vec![Register::STATUS], vec![BitFlags::INT])];
+    let transactions = [I2cTrans::write_read(
+        DEV_ADDR,
+        vec![Reg::STATUS],
+        vec![BF::INT],
+    )];
     let mut sensor = new_1018(&transactions);
     assert!(sensor.has_interrupt_happened().unwrap());
     destroy(sensor);
@@ -323,7 +321,7 @@ fn interrupt_has_happened() {
 
 #[test]
 fn interrupt_has_not_happened() {
-    let transactions = [I2cTrans::write_read(DEV_ADDR, vec![Register::STATUS], vec![0])];
+    let transactions = [I2cTrans::write_read(DEV_ADDR, vec![Reg::STATUS], vec![0])];
     let mut sensor = new_1018(&transactions);
     assert!(!sensor.has_interrupt_happened().unwrap());
     destroy(sensor);
@@ -331,11 +329,7 @@ fn interrupt_has_not_happened() {
 
 #[test]
 fn can_clear_interrupts() {
-    let transactions = [I2cTrans::write_read(
-        DEV_ADDR,
-        vec![Register::INT_REL],
-        vec![0],
-    )];
+    let transactions = [I2cTrans::write_read(DEV_ADDR, vec![Reg::INT_REL], vec![0])];
     let mut sensor = new_1018(&transactions);
     sensor.clear_interrupts().unwrap();
     destroy(sensor);

@@ -16,6 +16,7 @@
 //! - Enable/disable MEMS self-test function. See [`enable_mems_self_test()`].
 //! - Interrupt support:
 //!     - Check if any interrupt has happened. See [`has_interrupt_happened()`].
+//!     - Clear interrupts. See [`clear_interrupts()`].
 //!
 //! [`enable()`]: struct.Kxcj9.html#method.enable
 //! [`read()`]: struct.Kxcj9.html#method.read
@@ -28,6 +29,7 @@
 //! [`communication_self_test()`]: struct.Kxcj9.html#method.communication_self_test
 //! [`enable_mems_self_test()`]: struct.Kxcj9.html#method.enable_mems_self_test
 //! [`has_interrupt_happened()`]: struct.Kxcj9.html#method.has_interrupt_happened
+//! [`clear_interrupts()`]: struct.Kxcj9.html#method.clear_interrupts
 //!
 //! ## The device
 //!

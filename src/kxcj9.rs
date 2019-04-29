@@ -10,6 +10,7 @@ impl Register {
     const DCST_RESP: u8 = 0x0C;
     const WHO_AM_I: u8 = 0x0F;
     const STATUS: u8 = 0x18;
+    const INT_REL: u8 = 0x1A;
     const CTRL1: u8 = 0x1B;
     const CTRL2: u8 = 0x1D;
     const DATA_CTRL: u8 = 0x21;
@@ -245,6 +246,14 @@ where
     pub fn has_interrupt_happened(&mut self) -> Result<bool, Error<E>> {
         let status = self.read_register(Register::STATUS)?;
         Ok((status & BitFlags::INT) != 0)
+    }
+
+    /// Clear interrupts.
+    ///
+    /// This clears all interrupt source registers and changes the physical
+    /// interrupt pin to its inactive state.
+    pub fn clear_interrupts(&mut self) -> Result<(), Error<E>> {
+        self.read_register(Register::INT_REL).and(Ok(()))
     }
 
     /// Perform software reset

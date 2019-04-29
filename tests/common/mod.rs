@@ -10,6 +10,7 @@ impl Register {
     pub const DCST_RESP: u8 = 0x0C;
     pub const WHO_AM_I: u8 = 0x0F;
     pub const STATUS: u8 = 0x18;
+    pub const INT_REL: u8 = 0x1A;
     pub const CTRL1: u8 = 0x1B;
     pub const CTRL2: u8 = 0x1D;
     pub const DATA_CTRL: u8 = 0x21;

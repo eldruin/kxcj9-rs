@@ -329,3 +329,14 @@ fn interrupt_has_not_happened() {
     destroy(sensor);
 }
 
+#[test]
+fn can_clear_interrupts() {
+    let transactions = [I2cTrans::write_read(
+        DEV_ADDR,
+        vec![Register::INT_REL],
+        vec![0],
+    )];
+    let mut sensor = new_1018(&transactions);
+    sensor.clear_interrupts().unwrap();
+    destroy(sensor);
+}

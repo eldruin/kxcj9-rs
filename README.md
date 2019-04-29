@@ -22,6 +22,7 @@ This driver allows you to:
 - Enable/disable MEMS self-test function. See `enable_mems_self_test()`.
 - Interrupt support:
     - Check if any interrupt has happened. See `has_interrupt_happened()`.
+    - Clear interrupts. See `clear_interrupts()`.
 
 ## The device
 

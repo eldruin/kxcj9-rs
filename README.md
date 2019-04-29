@@ -20,6 +20,8 @@ This driver allows you to:
 - Perform a software reset. See `reset()`.
 - Run a communication self-test. See `communication_self_test()`.
 - Enable/disable MEMS self-test function. See `enable_mems_self_test()`.
+- Interrupt support:
+    - Check if any interrupt has happened. See `has_interrupt_happened()`.
 
 ## The device
 

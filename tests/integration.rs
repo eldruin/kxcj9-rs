@@ -312,3 +312,20 @@ fn can_disable_mems_self_test() {
     sensor.disable_mems_self_test().unwrap();
     destroy(sensor);
 }
+
+#[test]
+fn interrupt_has_happened() {
+    let transactions = [I2cTrans::write_read(DEV_ADDR, vec![Register::STATUS], vec![BitFlags::INT])];
+    let mut sensor = new_1018(&transactions);
+    assert!(sensor.has_interrupt_happened().unwrap());
+    destroy(sensor);
+}
+
+#[test]
+fn interrupt_has_not_happened() {
+    let transactions = [I2cTrans::write_read(DEV_ADDR, vec![Register::STATUS], vec![0])];
+    let mut sensor = new_1018(&transactions);
+    assert!(!sensor.has_interrupt_happened().unwrap());
+    destroy(sensor);
+}
+

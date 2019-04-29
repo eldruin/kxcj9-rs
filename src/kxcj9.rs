@@ -9,6 +9,7 @@ impl Register {
     const XOUT_L: u8 = 0x06;
     const DCST_RESP: u8 = 0x0C;
     const WHO_AM_I: u8 = 0x0F;
+    const STATUS: u8 = 0x18;
     const CTRL1: u8 = 0x1B;
     const CTRL2: u8 = 0x1D;
     const DATA_CTRL: u8 = 0x21;
@@ -23,6 +24,7 @@ impl BitFlags {
     const GSEL0: u8 = 0b0000_1000;
     const SRST: u8 = 0b1000_0000;
     const DCST: u8 = 0b0001_0000;
+    const INT: u8 = 0b0001_0000;
 }
 
 const DATA_CTRL_DEFAULT: u8 = 0x02;
@@ -237,6 +239,12 @@ where
         } else {
             Ok(())
         }
+    }
+
+    /// Check if any interrupt has happened
+    pub fn has_interrupt_happened(&mut self) -> Result<bool, Error<E>> {
+        let status = self.read_register(Register::STATUS)?;
+        Ok((status & BitFlags::INT) != 0)
     }
 
     /// Perform software reset

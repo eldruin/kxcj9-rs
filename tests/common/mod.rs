@@ -23,6 +23,7 @@ pub struct BitFlags;
 impl BitFlags {
     pub const PC1: u8 = 0b1000_0000;
     pub const RES: u8 = 0b0100_0000;
+    pub const DRDYE: u8 = 0b0010_0000;
     pub const GSEL1: u8 = 0b0001_0000;
     pub const GSEL0: u8 = 0b0000_1000;
     pub const SRST: u8 = 0b1000_0000;

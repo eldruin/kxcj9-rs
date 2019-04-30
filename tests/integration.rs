@@ -379,3 +379,21 @@ int_happened_test!(wake_up_y_pos_int, 0, BF::YPWU, wake_up_y_positive);
 int_happened_test!(wake_up_y_neg_int, 0, BF::YNWU, wake_up_y_negative);
 int_happened_test!(wake_up_z_pos_int, 0, BF::ZPWU, wake_up_z_positive);
 int_happened_test!(wake_up_z_neg_int, 0, BF::ZNWU, wake_up_z_negative);
+
+macro_rules! change_ctrl1_test {
+    ($name:ident, $method:ident, $ctrl1_after:expr) => {
+        #[test]
+        fn $name() {
+            let transactions = [
+                I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, 0]),
+                I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, $ctrl1_after]),
+            ];
+            let mut sensor = new_1018(&transactions);
+            sensor.$method().unwrap();
+            destroy(sensor);
+        }
+    };
+}
+
+change_ctrl1_test!(can_enable_drdy_int, enable_data_ready_interrupt, BF::DRDYE);
+change_ctrl1_test!(can_disable_drdy_int, disable_data_ready_interrupt, 0);

@@ -23,6 +23,7 @@ struct BitFlags;
 impl BitFlags {
     const PC1: u8 = 0b1000_0000;
     const RES: u8 = 0b0100_0000;
+    const DRDYE: u8 = 0b0010_0000;
     const GSEL1: u8 = 0b0001_0000;
     const GSEL0: u8 = 0b0000_1000;
     const SRST: u8 = 0b1000_0000;
@@ -250,6 +251,20 @@ where
         } else {
             Ok(())
         }
+    }
+
+    /// Enable new acceleration data ready interrupt.
+    pub fn enable_data_ready_interrupt(&mut self) -> Result<(), Error<E>> {
+        let config = self.ctrl1.with_high(BitFlags::DRDYE);
+        self.prepare_ctrl1_to_change_settings()?;
+        self.update_ctrl1(config)
+    }
+
+    /// Disable new acceleration data ready interrupt.
+    pub fn disable_data_ready_interrupt(&mut self) -> Result<(), Error<E>> {
+        let config = self.ctrl1.with_low(BitFlags::DRDYE);
+        self.prepare_ctrl1_to_change_settings()?;
+        self.update_ctrl1(config)
     }
 
     /// Check if any interrupt has happened

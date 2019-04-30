@@ -119,6 +119,13 @@ pub struct InterruptInfo {
 /// Wake-up motion interrupt configuration
 #[derive(Debug, Clone)]
 pub struct WakeUpInterruptConfig {
+    /// Wake-up interrupt trigger motion
+    pub trigger_motion: WakeUpTriggerMotion,
+}
+
+/// Wake-up interrupt trigger motion
+#[derive(Debug, Clone)]
+pub struct WakeUpTriggerMotion {
     /// Enable wake-up interrupt on X-axis negative direction motion detected
     pub x_negative: bool,
     /// Enable wake-up interrupt on X-axis positive direction motion detected
@@ -133,9 +140,9 @@ pub struct WakeUpInterruptConfig {
     pub z_positive: bool,
 }
 
-impl Default for WakeUpInterruptConfig {
+impl Default for WakeUpTriggerMotion {
     fn default() -> Self {
-        WakeUpInterruptConfig {
+        WakeUpTriggerMotion {
             x_negative: true,
             x_positive: true,
             y_negative: true,

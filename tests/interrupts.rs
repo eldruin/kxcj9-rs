@@ -1,7 +1,7 @@
 extern crate embedded_hal_mock as hal;
 extern crate kxcj9;
 use hal::i2c::Transaction as I2cTrans;
-use kxcj9::{InterruptInfo, WakeUpInterruptConfig};
+use kxcj9::{InterruptInfo, WakeUpTriggerMotion, WakeUpInterruptConfig};
 
 mod common;
 use common::{destroy, new_1018, BitFlags as BF, Register as Reg, DEV_ADDR};
@@ -109,7 +109,7 @@ fn config_wu_int_disable_all() {
     ];
     let mut sensor = new_1018(&transactions);
     sensor.enable().unwrap();
-    let config = WakeUpInterruptConfig {
+    let trigger_motion = WakeUpTriggerMotion {
         x_negative: false,
         x_positive: false,
         y_negative: false,
@@ -117,6 +117,7 @@ fn config_wu_int_disable_all() {
         z_negative: false,
         z_positive: false,
     };
+    let config = WakeUpInterruptConfig { trigger_motion };
     sensor.configure_wake_up_interrupt(config).unwrap();
     destroy(sensor);
 }
@@ -131,7 +132,8 @@ fn config_wu_int_enable_all() {
     ];
     let mut sensor = new_1018(&transactions);
     sensor.enable().unwrap();
-    let config = WakeUpInterruptConfig::default();
+    let trigger_motion = WakeUpTriggerMotion::default();
+    let config = WakeUpInterruptConfig { trigger_motion };
     sensor.configure_wake_up_interrupt(config).unwrap();
     destroy(sensor);
 }
@@ -148,7 +150,7 @@ macro_rules! config_wu_int_test {
             ];
             let mut sensor = new_1018(&transactions);
             sensor.enable().unwrap();
-            let mut config = WakeUpInterruptConfig {
+            let mut trigger_motion = WakeUpTriggerMotion {
                 x_negative: false,
                 x_positive: false,
                 y_negative: false,
@@ -156,7 +158,8 @@ macro_rules! config_wu_int_test {
                 z_negative: false,
                 z_positive: false,
             };
-            config.$direction = true;
+            trigger_motion.$direction = true;
+            let config = WakeUpInterruptConfig { trigger_motion };
             sensor.configure_wake_up_interrupt(config).unwrap();
             destroy(sensor);
         }

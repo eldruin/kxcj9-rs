@@ -2,7 +2,7 @@ use {
     conversion::{convert_12bit, convert_14bit, convert_8bit},
     i2c, ic, nb, Config, Error, GScale16, GScale8, InterruptInfo, Kxcj9, Measurement,
     OutputDataRate, PhantomData, Resolution, ScaleMeasurement, SlaveAddr, UnscaledMeasurement,
-    WakeUpInterruptConfig, DEVICE_BASE_ADDRESS,
+    WakeUpTriggerMotion, DEVICE_BASE_ADDRESS, WakeUpInterruptConfig,
 };
 
 struct Register;
@@ -289,22 +289,22 @@ where
         config: WakeUpInterruptConfig,
     ) -> Result<(), Error<E>> {
         let mut int_config = 0;
-        if config.x_negative {
+        if config.trigger_motion.x_negative {
             int_config |= BitFlags::XNWU;
         }
-        if config.x_positive {
+        if config.trigger_motion.x_positive {
             int_config |= BitFlags::XPWU;
         }
-        if config.y_negative {
+        if config.trigger_motion.y_negative {
             int_config |= BitFlags::YNWU;
         }
-        if config.y_positive {
+        if config.trigger_motion.y_positive {
             int_config |= BitFlags::YPWU;
         }
-        if config.z_negative {
+        if config.trigger_motion.z_negative {
             int_config |= BitFlags::ZNWU;
         }
-        if config.z_positive {
+        if config.trigger_motion.z_positive {
             int_config |= BitFlags::ZPWU;
         }
         let previous_ctrl1 = self.ctrl1;

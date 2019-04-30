@@ -157,7 +157,7 @@ use hal::blocking::i2c;
 mod types;
 pub use types::{
     Error, GScale16, GScale8, InterruptInfo, Measurement, OutputDataRate, Resolution, SlaveAddr,
-    UnscaledMeasurement, WakeUpInterruptConfig,
+    UnscaledMeasurement, WakeUpTriggerMotion, WakeUpInterruptConfig
 };
 
 const DEVICE_BASE_ADDRESS: u8 = 0xE;

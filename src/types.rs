@@ -116,15 +116,8 @@ pub struct InterruptInfo {
     pub wake_up_z_positive: bool,
 }
 
-/// Wake-up motion interrupt configuration
-#[derive(Debug, Clone)]
-pub struct WakeUpInterruptConfig {
-    /// Wake-up interrupt trigger motion
-    pub trigger_motion: WakeUpTriggerMotion,
-}
-
 /// Wake-up interrupt trigger motion
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct WakeUpTriggerMotion {
     /// Enable wake-up interrupt on X-axis negative direction motion detected
     pub x_negative: bool,
@@ -150,6 +143,33 @@ impl Default for WakeUpTriggerMotion {
             z_negative: true,
             z_positive: true,
         }
+    }
+}
+
+/// Output data rate for wake-up motion detection
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum WakeUpOutputDataRate {
+    /// 0.781 Hz (default)
+    Hz0_781,
+    /// 1.563 Hz
+    Hz1_563,
+    /// 3.125 Hz
+    Hz3_125,
+    /// 6.25 Hz
+    Hz6_25,
+    /// 12.5 Hz
+    Hz12_5,
+    /// 25 Hz
+    Hz25,
+    /// 50 Hz
+    Hz50,
+    /// 100 Hz
+    Hz100,
+}
+
+impl Default for WakeUpOutputDataRate {
+    fn default() -> Self {
+        WakeUpOutputDataRate::Hz0_781
     }
 }
 

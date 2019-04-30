@@ -1,7 +1,7 @@
 extern crate embedded_hal_mock as hal;
 extern crate kxcj9;
 use hal::i2c::Transaction as I2cTrans;
-use kxcj9::{InterruptInfo, WakeUpTriggerMotion, WakeUpInterruptConfig};
+use kxcj9::{InterruptInfo, WakeUpOutputDataRate, WakeUpTriggerMotion};
 
 mod common;
 use common::{destroy, new_1018, BitFlags as BF, Register as Reg, DEV_ADDR};
@@ -105,6 +105,7 @@ fn config_wu_int_disable_all() {
         I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1]),
         I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, 0]),
         I2cTrans::write(DEV_ADDR, vec![Reg::INT_CTRL2, 0]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL2, 0]),
         I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1]),
     ];
     let mut sensor = new_1018(&transactions);
@@ -117,8 +118,10 @@ fn config_wu_int_disable_all() {
         z_negative: false,
         z_positive: false,
     };
-    let config = WakeUpInterruptConfig { trigger_motion };
-    sensor.configure_wake_up_interrupt(config).unwrap();
+    let odr = WakeUpOutputDataRate::default();
+    sensor
+        .configure_wake_up_interrupt(trigger_motion, odr)
+        .unwrap();
     destroy(sensor);
 }
 
@@ -128,17 +131,20 @@ fn config_wu_int_enable_all() {
         I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1]),
         I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, 0]),
         I2cTrans::write(DEV_ADDR, vec![Reg::INT_CTRL2, 0b0011_1111]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL2, 0]),
         I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1]),
     ];
     let mut sensor = new_1018(&transactions);
     sensor.enable().unwrap();
     let trigger_motion = WakeUpTriggerMotion::default();
-    let config = WakeUpInterruptConfig { trigger_motion };
-    sensor.configure_wake_up_interrupt(config).unwrap();
+    let odr = WakeUpOutputDataRate::default();
+    sensor
+        .configure_wake_up_interrupt(trigger_motion, odr)
+        .unwrap();
     destroy(sensor);
 }
 
-macro_rules! config_wu_int_test {
+macro_rules! config_wu_int_motion_test {
     ($name:ident, $direction:ident, $int_ctrl2:expr) => {
         #[test]
         fn $name() {
@@ -146,6 +152,7 @@ macro_rules! config_wu_int_test {
                 I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1]),
                 I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, 0]),
                 I2cTrans::write(DEV_ADDR, vec![Reg::INT_CTRL2, $int_ctrl2]),
+                I2cTrans::write(DEV_ADDR, vec![Reg::CTRL2, 0]),
                 I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1]),
             ];
             let mut sensor = new_1018(&transactions);
@@ -159,16 +166,50 @@ macro_rules! config_wu_int_test {
                 z_positive: false,
             };
             trigger_motion.$direction = true;
-            let config = WakeUpInterruptConfig { trigger_motion };
-            sensor.configure_wake_up_interrupt(config).unwrap();
+            let odr = WakeUpOutputDataRate::default();
+            sensor
+                .configure_wake_up_interrupt(trigger_motion, odr)
+                .unwrap();
             destroy(sensor);
         }
     };
 }
 
-config_wu_int_test!(can_enable_wu_int_x_neg, x_negative, BF::XNWU);
-config_wu_int_test!(can_enable_wu_int_x_pos, x_positive, BF::XPWU);
-config_wu_int_test!(can_enable_wu_int_y_neg, y_negative, BF::YNWU);
-config_wu_int_test!(can_enable_wu_int_y_pos, y_positive, BF::YPWU);
-config_wu_int_test!(can_enable_wu_int_z_neg, z_negative, BF::ZNWU);
-config_wu_int_test!(can_enable_wu_int_z_pos, z_positive, BF::ZPWU);
+config_wu_int_motion_test!(can_enable_wu_int_motion_x_neg, x_negative, BF::XNWU);
+config_wu_int_motion_test!(can_enable_wu_int_motion_x_pos, x_positive, BF::XPWU);
+config_wu_int_motion_test!(can_enable_wu_int_motion_y_neg, y_negative, BF::YNWU);
+config_wu_int_motion_test!(can_enable_wu_int_motion_y_pos, y_positive, BF::YPWU);
+config_wu_int_motion_test!(can_enable_wu_int_motion_z_neg, z_negative, BF::ZNWU);
+config_wu_int_motion_test!(can_enable_wu_int_motion_z_pos, z_positive, BF::ZPWU);
+
+macro_rules! set_wu_odr_test {
+    ($name:ident, $variant:ident, $ctrl2:expr) => {
+        #[test]
+        fn $name() {
+            let transactions = [
+                I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1]),
+                I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, 0]),
+                I2cTrans::write(DEV_ADDR, vec![Reg::INT_CTRL2, 0b0011_1111]),
+                I2cTrans::write(DEV_ADDR, vec![Reg::CTRL2, $ctrl2]),
+                I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1]),
+            ];
+            let mut sensor = new_1018(&transactions);
+            sensor.enable().unwrap();
+            let trigger_motion = WakeUpTriggerMotion::default();
+            let odr = WakeUpOutputDataRate::$variant;
+            sensor
+                .configure_wake_up_interrupt(trigger_motion, odr)
+                .unwrap();
+            destroy(sensor);
+        }
+    };
+}
+
+set_wu_odr_test!(set_odr_hz0, Hz0_781, 0);
+set_wu_odr_test!(set_odr_hz1, Hz1_563, 1);
+set_wu_odr_test!(set_odr_hz3, Hz3_125, 2);
+set_wu_odr_test!(set_odr_hz6, Hz6_25, 3);
+set_wu_odr_test!(set_odr_hz12, Hz12_5, 4);
+set_wu_odr_test!(set_odr_hz25, Hz25, 5);
+set_wu_odr_test!(set_odr_hz50, Hz50, 6);
+set_wu_odr_test!(set_odr_hz100, Hz100, 7);

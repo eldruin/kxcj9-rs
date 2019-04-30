@@ -2,7 +2,7 @@ use {
     conversion::{convert_12bit, convert_14bit, convert_8bit},
     i2c, ic, nb, Config, Error, GScale16, GScale8, InterruptInfo, Kxcj9, Measurement,
     OutputDataRate, PhantomData, Resolution, ScaleMeasurement, SlaveAddr, UnscaledMeasurement,
-    WakeUpTriggerMotion, DEVICE_BASE_ADDRESS, WakeUpInterruptConfig,
+    WakeUpOutputDataRate, WakeUpTriggerMotion, DEVICE_BASE_ADDRESS,
 };
 
 struct Register;
@@ -286,30 +286,47 @@ where
     /// Configure wake-up motion detection interrupt
     pub fn configure_wake_up_interrupt(
         &mut self,
-        config: WakeUpInterruptConfig,
+        trigger_motion: WakeUpTriggerMotion,
+        output_data_rate: WakeUpOutputDataRate,
     ) -> Result<(), Error<E>> {
+        use WakeUpOutputDataRate as ODR;
+
         let mut int_config = 0;
-        if config.trigger_motion.x_negative {
+        if trigger_motion.x_negative {
             int_config |= BitFlags::XNWU;
         }
-        if config.trigger_motion.x_positive {
+        if trigger_motion.x_positive {
             int_config |= BitFlags::XPWU;
         }
-        if config.trigger_motion.y_negative {
+        if trigger_motion.y_negative {
             int_config |= BitFlags::YNWU;
         }
-        if config.trigger_motion.y_positive {
+        if trigger_motion.y_positive {
             int_config |= BitFlags::YPWU;
         }
-        if config.trigger_motion.z_negative {
+        if trigger_motion.z_negative {
             int_config |= BitFlags::ZNWU;
         }
-        if config.trigger_motion.z_positive {
+        if trigger_motion.z_positive {
             int_config |= BitFlags::ZPWU;
         }
+
+        let ctrl2 = self.ctrl2.with_low(0b0000_0111);
+        let ctrl2 = match output_data_rate {
+            ODR::Hz0_781 => ctrl2,
+            ODR::Hz1_563 => ctrl2.with_high(1),
+            ODR::Hz3_125 => ctrl2.with_high(2),
+            ODR::Hz6_25 => ctrl2.with_high(3),
+            ODR::Hz12_5 => ctrl2.with_high(4),
+            ODR::Hz25 => ctrl2.with_high(5),
+            ODR::Hz50 => ctrl2.with_high(6),
+            ODR::Hz100 => ctrl2.with_high(7),
+        };
         let previous_ctrl1 = self.ctrl1;
         self.prepare_ctrl1_to_change_settings()?;
         self.write_register(Register::INT_CTRL2, int_config)?;
+        self.write_register(Register::CTRL2, ctrl2.bits)?;
+        self.ctrl2 = ctrl2;
         self.update_ctrl1(previous_ctrl1)
     }
 

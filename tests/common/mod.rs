@@ -26,6 +26,7 @@ impl BitFlags {
     pub const DRDYE: u8 = 0b0010_0000;
     pub const GSEL1: u8 = 0b0001_0000;
     pub const GSEL0: u8 = 0b0000_1000;
+    pub const WUFE: u8 = 0b0000_0010;
     pub const SRST: u8 = 0b1000_0000;
     pub const DCST: u8 = 0b0001_0000;
     pub const INT: u8 = 0b0001_0000;

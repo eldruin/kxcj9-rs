@@ -397,3 +397,5 @@ macro_rules! change_ctrl1_test {
 
 change_ctrl1_test!(can_enable_drdy_int, enable_data_ready_interrupt, BF::DRDYE);
 change_ctrl1_test!(can_disable_drdy_int, disable_data_ready_interrupt, 0);
+change_ctrl1_test!(can_enable_wake_up_int, enable_wake_up_interrupt, BF::WUFE);
+change_ctrl1_test!(can_disable_wake_up_int, disable_wake_up_interrupt, 0);

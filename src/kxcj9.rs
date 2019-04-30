@@ -26,6 +26,7 @@ impl BitFlags {
     const DRDYE: u8 = 0b0010_0000;
     const GSEL1: u8 = 0b0001_0000;
     const GSEL0: u8 = 0b0000_1000;
+    const WUFE: u8 = 0b0000_0010;
     const SRST: u8 = 0b1000_0000;
     const DCST: u8 = 0b0001_0000;
     const INT: u8 = 0b0001_0000;
@@ -263,6 +264,20 @@ where
     /// Disable new acceleration data ready interrupt.
     pub fn disable_data_ready_interrupt(&mut self) -> Result<(), Error<E>> {
         let config = self.ctrl1.with_low(BitFlags::DRDYE);
+        self.prepare_ctrl1_to_change_settings()?;
+        self.update_ctrl1(config)
+    }
+
+    /// Enable wake-up motion detected interrupt.
+    pub fn enable_wake_up_interrupt(&mut self) -> Result<(), Error<E>> {
+        let config = self.ctrl1.with_high(BitFlags::WUFE);
+        self.prepare_ctrl1_to_change_settings()?;
+        self.update_ctrl1(config)
+    }
+
+    /// Disable wake-up motion detected interrupt.
+    pub fn disable_wake_up_interrupt(&mut self) -> Result<(), Error<E>> {
+        let config = self.ctrl1.with_low(BitFlags::WUFE);
         self.prepare_ctrl1_to_change_settings()?;
         self.update_ctrl1(config)
     }

@@ -23,6 +23,7 @@ This driver allows you to:
 - Interrupt support:
     - Enable/disable new acceleration data ready interrupt. See `enable_data_ready_interrupt()`.
     - Enable/disable wake-up motion detected interrupt. See `enable_wake_up_interrupt()`.
+    - Configure wake-up motion detection interrupt. See `configure_wake_up_interrupt()`.
     - Check if any interrupt has happened. See `has_interrupt_happened()`.
     - Clear interrupts. See `clear_interrupts()`.
     - Read interrupt source information. See `read_interrupt_info()`.

@@ -116,6 +116,36 @@ pub struct InterruptInfo {
     pub wake_up_z_positive: bool,
 }
 
+/// Wake-up motion interrupt configuration
+#[derive(Debug, Clone)]
+pub struct WakeUpInterruptConfig {
+    /// Enable wake-up interrupt on X-axis negative direction motion detected
+    pub x_negative: bool,
+    /// Enable wake-up interrupt on X-axis positive direction motion detected
+    pub x_positive: bool,
+    /// Enable wake-up interrupt on Y-axis negative direction motion detected
+    pub y_negative: bool,
+    /// Enable wake-up interrupt on Y-axis positive direction motion detected
+    pub y_positive: bool,
+    /// Enable wake-up interrupt on Z-axis negative direction motion detected
+    pub z_negative: bool,
+    /// Enable wake-up interrupt on Z-axis positive direction motion detected
+    pub z_positive: bool,
+}
+
+impl Default for WakeUpInterruptConfig {
+    fn default() -> Self {
+        WakeUpInterruptConfig {
+            x_negative: true,
+            x_positive: true,
+            y_negative: true,
+            y_positive: true,
+            z_negative: true,
+            z_positive: true,
+        }
+    }
+}
+
 /// Possible slave addresses
 #[derive(Debug, Clone, Copy)]
 pub enum SlaveAddr {

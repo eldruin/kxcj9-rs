@@ -14,6 +14,7 @@ impl Register {
     pub const INT_REL: u8 = 0x1A;
     pub const CTRL1: u8 = 0x1B;
     pub const CTRL2: u8 = 0x1D;
+    pub const INT_CTRL2: u8 = 0x1F;
     pub const DATA_CTRL: u8 = 0x21;
     pub const SELF_TEST: u8 = 0x3A;
 }

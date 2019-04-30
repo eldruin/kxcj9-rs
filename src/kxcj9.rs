@@ -2,7 +2,7 @@ use {
     conversion::{convert_12bit, convert_14bit, convert_8bit},
     i2c, ic, nb, Config, Error, GScale16, GScale8, InterruptInfo, Kxcj9, Measurement,
     OutputDataRate, PhantomData, Resolution, ScaleMeasurement, SlaveAddr, UnscaledMeasurement,
-    DEVICE_BASE_ADDRESS,
+    WakeUpInterruptConfig, DEVICE_BASE_ADDRESS,
 };
 
 struct Register;
@@ -15,6 +15,7 @@ impl Register {
     const INT_REL: u8 = 0x1A;
     const CTRL1: u8 = 0x1B;
     const CTRL2: u8 = 0x1D;
+    const INT_CTRL2: u8 = 0x1F;
     const DATA_CTRL: u8 = 0x21;
     const SELF_TEST: u8 = 0x3A;
 }
@@ -280,6 +281,36 @@ where
         let config = self.ctrl1.with_low(BitFlags::WUFE);
         self.prepare_ctrl1_to_change_settings()?;
         self.update_ctrl1(config)
+    }
+
+    /// Configure wake-up motion detection interrupt
+    pub fn configure_wake_up_interrupt(
+        &mut self,
+        config: WakeUpInterruptConfig,
+    ) -> Result<(), Error<E>> {
+        let mut int_config = 0;
+        if config.x_negative {
+            int_config |= BitFlags::XNWU;
+        }
+        if config.x_positive {
+            int_config |= BitFlags::XPWU;
+        }
+        if config.y_negative {
+            int_config |= BitFlags::YNWU;
+        }
+        if config.y_positive {
+            int_config |= BitFlags::YPWU;
+        }
+        if config.z_negative {
+            int_config |= BitFlags::ZNWU;
+        }
+        if config.z_positive {
+            int_config |= BitFlags::ZPWU;
+        }
+        let previous_ctrl1 = self.ctrl1;
+        self.prepare_ctrl1_to_change_settings()?;
+        self.write_register(Register::INT_CTRL2, int_config)?;
+        self.update_ctrl1(previous_ctrl1)
     }
 
     /// Check if any interrupt has happened

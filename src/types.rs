@@ -95,6 +95,27 @@ pub struct UnscaledMeasurement {
     pub z: i16,
 }
 
+/// Interrupt source information
+#[derive(Debug, Default, Clone, PartialEq)]
+pub struct InterruptInfo {
+    /// New acceleration data is available
+    pub data_ready: bool,
+    /// Wake-up motion detected
+    pub wake_up: bool,
+    /// Wake-up X-axis negative direction motion detected
+    pub wake_up_x_negative: bool,
+    /// Wake-up X-axis positive direction motion detected
+    pub wake_up_x_positive: bool,
+    /// Wake-up Y-axis negative direction motion detected
+    pub wake_up_y_negative: bool,
+    /// Wake-up Y-axis positive direction motion detected
+    pub wake_up_y_positive: bool,
+    /// Wake-up Z-axis negative direction motion detected
+    pub wake_up_z_negative: bool,
+    /// Wake-up Z-axis positive direction motion detected
+    pub wake_up_z_positive: bool,
+}
+
 /// Possible slave addresses
 #[derive(Debug, Clone, Copy)]
 pub enum SlaveAddr {

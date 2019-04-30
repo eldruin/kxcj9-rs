@@ -23,6 +23,7 @@ This driver allows you to:
 - Interrupt support:
     - Check if any interrupt has happened. See `has_interrupt_happened()`.
     - Clear interrupts. See `clear_interrupts()`.
+    - Read interrupt source information. See `read_interrupt_info()`.
 
 ## The device
 

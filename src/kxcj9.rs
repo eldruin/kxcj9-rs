@@ -1,7 +1,8 @@
 use {
     conversion::{convert_12bit, convert_14bit, convert_8bit},
-    i2c, ic, nb, Config, Error, GScale16, GScale8, Kxcj9, Measurement, OutputDataRate, PhantomData,
-    Resolution, ScaleMeasurement, SlaveAddr, UnscaledMeasurement, DEVICE_BASE_ADDRESS,
+    i2c, ic, nb, Config, Error, GScale16, GScale8, InterruptInfo, Kxcj9, Measurement,
+    OutputDataRate, PhantomData, Resolution, ScaleMeasurement, SlaveAddr, UnscaledMeasurement,
+    DEVICE_BASE_ADDRESS,
 };
 
 struct Register;
@@ -9,6 +10,7 @@ impl Register {
     const XOUT_L: u8 = 0x06;
     const DCST_RESP: u8 = 0x0C;
     const WHO_AM_I: u8 = 0x0F;
+    const INT_SOURCE1: u8 = 0x16;
     const STATUS: u8 = 0x18;
     const INT_REL: u8 = 0x1A;
     const CTRL1: u8 = 0x1B;
@@ -26,6 +28,14 @@ impl BitFlags {
     const SRST: u8 = 0b1000_0000;
     const DCST: u8 = 0b0001_0000;
     const INT: u8 = 0b0001_0000;
+    const DRDY: u8 = 0b0001_0000;
+    const WUFS: u8 = 0b0000_0010;
+    const ZPWU: u8 = 0b0000_0001;
+    const ZNWU: u8 = 0b0000_0010;
+    const YPWU: u8 = 0b0000_0100;
+    const YNWU: u8 = 0b0000_1000;
+    const XPWU: u8 = 0b0001_0000;
+    const XNWU: u8 = 0b0010_0000;
 }
 
 const DATA_CTRL_DEFAULT: u8 = 0x02;
@@ -248,6 +258,25 @@ where
         Ok((status & BitFlags::INT) != 0)
     }
 
+    /// Read interrupt source information
+    pub fn read_interrupt_info(&mut self) -> Result<InterruptInfo, Error<E>> {
+        let mut data = [0; 2];
+        self.i2c
+            .write_read(self.address, &[Register::INT_SOURCE1], &mut data)
+            .map_err(Error::I2C)?;
+        let info = InterruptInfo {
+            data_ready: is_high(data[0], BitFlags::DRDY),
+            wake_up: is_high(data[0], BitFlags::WUFS),
+            wake_up_x_positive: is_high(data[1], BitFlags::XPWU),
+            wake_up_x_negative: is_high(data[1], BitFlags::XNWU),
+            wake_up_y_positive: is_high(data[1], BitFlags::YPWU),
+            wake_up_y_negative: is_high(data[1], BitFlags::YNWU),
+            wake_up_z_positive: is_high(data[1], BitFlags::ZPWU),
+            wake_up_z_negative: is_high(data[1], BitFlags::ZNWU),
+        };
+        Ok(info)
+    }
+
     /// Clear interrupts.
     ///
     /// This clears all interrupt source registers and changes the physical
@@ -391,4 +420,8 @@ where
         self.prepare_ctrl1_to_change_settings()?;
         self.update_ctrl1(config)
     }
+}
+
+fn is_high(value: u8, mask: u8) -> bool {
+    (value & mask) != 0
 }

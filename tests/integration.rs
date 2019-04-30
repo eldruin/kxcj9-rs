@@ -1,7 +1,7 @@
 extern crate embedded_hal_mock as hal;
 extern crate kxcj9;
 use hal::i2c::Transaction as I2cTrans;
-use kxcj9::{GScale16, GScale8, OutputDataRate, Resolution};
+use kxcj9::{GScale16, GScale8, InterruptInfo, OutputDataRate, Resolution};
 
 mod common;
 use common::{destroy, new_1008, new_1018, BitFlags as BF, Register as Reg, DEV_ADDR};
@@ -334,3 +334,48 @@ fn can_clear_interrupts() {
     sensor.clear_interrupts().unwrap();
     destroy(sensor);
 }
+
+#[test]
+fn no_interrupt_has_happened() {
+    let transactions = [I2cTrans::write_read(
+        DEV_ADDR,
+        vec![Reg::INT_SOURCE1],
+        vec![0, 0],
+    )];
+    let mut sensor = new_1018(&transactions);
+    assert_eq!(
+        InterruptInfo::default(),
+        sensor.read_interrupt_info().unwrap()
+    );
+    destroy(sensor);
+}
+
+macro_rules! int_happened_test {
+    ($name:ident, $int_source1:expr, $int_source2:expr, $field:ident) => {
+        #[test]
+        fn $name() {
+            let transactions = [I2cTrans::write_read(
+                DEV_ADDR,
+                vec![Reg::INT_SOURCE1],
+                vec![$int_source1, $int_source2],
+            )];
+            let mut sensor = new_1018(&transactions);
+            assert_eq!(
+                InterruptInfo {
+                    $field: true,
+                    ..Default::default()
+                },
+                sensor.read_interrupt_info().unwrap()
+            );
+            destroy(sensor);
+        }
+    };
+}
+int_happened_test!(data_ready_int, BF::DRDY, 0, data_ready);
+int_happened_test!(wake_up_int, BF::WUFS, 0, wake_up);
+int_happened_test!(wake_up_x_pos_int, 0, BF::XPWU, wake_up_x_positive);
+int_happened_test!(wake_up_x_neg_int, 0, BF::XNWU, wake_up_x_negative);
+int_happened_test!(wake_up_y_pos_int, 0, BF::YPWU, wake_up_y_positive);
+int_happened_test!(wake_up_y_neg_int, 0, BF::YNWU, wake_up_y_negative);
+int_happened_test!(wake_up_z_pos_int, 0, BF::ZPWU, wake_up_z_positive);
+int_happened_test!(wake_up_z_neg_int, 0, BF::ZNWU, wake_up_z_negative);

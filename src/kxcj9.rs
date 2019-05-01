@@ -2,7 +2,7 @@ use {
     conversion::{convert_12bit, convert_14bit, convert_8bit},
     i2c, ic, nb, Config, Error, GScale16, GScale8, InterruptInfo, Kxcj9, Measurement,
     OutputDataRate, PhantomData, Resolution, ScaleMeasurement, SlaveAddr, UnscaledMeasurement,
-    WakeUpInterruptConfig, DEVICE_BASE_ADDRESS,
+    WakeUpInterruptConfig, WakeUpTriggerMotion, DEVICE_BASE_ADDRESS,
 };
 
 struct Register;
@@ -280,26 +280,7 @@ where
             return Err(Error::InvalidSetting);
         }
 
-        let mut int_config = 0;
-        if config.trigger_motion.x_negative {
-            int_config |= BitFlags::XNWU;
-        }
-        if config.trigger_motion.x_positive {
-            int_config |= BitFlags::XPWU;
-        }
-        if config.trigger_motion.y_negative {
-            int_config |= BitFlags::YNWU;
-        }
-        if config.trigger_motion.y_positive {
-            int_config |= BitFlags::YPWU;
-        }
-        if config.trigger_motion.z_negative {
-            int_config |= BitFlags::ZNWU;
-        }
-        if config.trigger_motion.z_positive {
-            int_config |= BitFlags::ZPWU;
-        }
-
+        let int_ctrl2 = config.trigger_motion.get_int_ctrl2();
         let ctrl2 = self.ctrl2.with_low(0b0000_0111);
         let ctrl2 = match config.data_rate {
             ODR::Hz0_781 => ctrl2,
@@ -313,7 +294,7 @@ where
         };
         let ctrl1 = self.ctrl1.with_high(BitFlags::WUFE);
         self.prepare_ctrl1_to_change_settings()?;
-        self.write_register(Register::INT_CTRL2, int_config)?;
+        self.write_register(Register::INT_CTRL2, int_ctrl2)?;
         self.write_register(Register::CTRL2, ctrl2.bits)?;
         self.write_register(Register::WAKEUP_TIMER, config.fault_count)?;
         self.ctrl2 = ctrl2;
@@ -499,4 +480,29 @@ where
 
 fn is_high(value: u8, mask: u8) -> bool {
     (value & mask) != 0
+}
+
+impl WakeUpTriggerMotion {
+    fn get_int_ctrl2(&self) -> u8 {
+        let mut int_ctrl2 = 0;
+        if self.x_negative {
+            int_ctrl2 |= BitFlags::XNWU;
+        }
+        if self.x_positive {
+            int_ctrl2 |= BitFlags::XPWU;
+        }
+        if self.y_negative {
+            int_ctrl2 |= BitFlags::YNWU;
+        }
+        if self.y_positive {
+            int_ctrl2 |= BitFlags::YPWU;
+        }
+        if self.z_negative {
+            int_ctrl2 |= BitFlags::ZNWU;
+        }
+        if self.z_positive {
+            int_ctrl2 |= BitFlags::ZPWU;
+        }
+        int_ctrl2
+    }
 }

@@ -1,4 +1,4 @@
-use {ic, private, GScaleConfig, Measurement, MeasurementBits, UnscaledMeasurement};
+use {ic, private, Error, GScaleConfig, Measurement, MeasurementBits, UnscaledMeasurement};
 
 #[doc(hidden)]
 pub trait ScaledDevice: private::Sealed {
@@ -7,6 +7,8 @@ pub trait ScaledDevice: private::Sealed {
         bits: MeasurementBits,
         scale_config: GScaleConfig,
     ) -> Measurement;
+
+    fn get_wake_up_threshold<E>(threshold: f32) -> Result<u8, Error<E>>;
 }
 
 impl ScaledDevice for ic::Kxcj9_1008 {
@@ -26,6 +28,14 @@ impl ScaledDevice for ic::Kxcj9_1008 {
             x: f32::from(unscaled.x) * g / max,
             y: f32::from(unscaled.y) * g / max,
             z: f32::from(unscaled.z) * g / max,
+        }
+    }
+
+    fn get_wake_up_threshold<E>(threshold: f32) -> Result<u8, Error<E>> {
+        if threshold < 0.0 || threshold > 8.0 {
+            Err(Error::InvalidSetting)
+        } else {
+            Ok((threshold * 16.0).round() as u8)
         }
     }
 }
@@ -49,10 +59,26 @@ impl ScaledDevice for ic::Kxcj9_1018 {
             z: f32::from(unscaled.z) * g / max,
         }
     }
+
+    fn get_wake_up_threshold<E>(threshold: f32) -> Result<u8, Error<E>> {
+        // There is a mismatch in the datasheet for this model.
+        // It says that the factory value is 0.5g, which I suppose corresponds
+        // to the reset value. However, the reset value is 0b0000_1000,
+        // which is not 0.5g but 1g following the equation in the datasheet.
+        // This is all fits fine for the KXCJ9-1008 model.
+        // I do not have one of these devices at hand to try this so I just
+        // apply the equation provided and suppose that either the reset value
+        // is wrong and should be 0b0000_0100 or the reset value corresponds to 1g.
+        if threshold < 0.0 || threshold > 16.0 {
+            Err(Error::InvalidSetting)
+        } else {
+            Ok((threshold * 8.0).round() as u8)
+        }
+    }
 }
 
 #[cfg(test)]
-mod tests {
+mod tests_scale {
     use super::*;
 
     fn assert_near_positive(a: f32, b: f32) {
@@ -111,4 +137,39 @@ mod tests {
     test!(scale_1018_14b_8g, Kxcj9_1018, 8191, _14bit, _1, 8.0);
     test!(scale_1018_14b_16g, Kxcj9_1018, 8191, _14bit, _2, 16.0);
     test!(scale_1018_14b_16gfp, Kxcj9_1018, 8191, _14bit, _3, 16.0);
+}
+
+#[cfg(test)]
+mod tests_wake_up_threshold {
+    use super::*;
+
+    macro_rules! test {
+        ($name:ident, $ic:ident, $threshold:expr, $expected:expr) => {
+            #[test]
+            fn $name() {
+                let threshold = ic::$ic::get_wake_up_threshold::<()>($threshold).unwrap();
+                assert_eq!($expected, threshold);
+            }
+        };
+    }
+    macro_rules! test_fail {
+        ($name:ident, $ic:ident, $threshold:expr) => {
+            #[test]
+            fn $name() {
+                ic::$ic::get_wake_up_threshold::<()>($threshold).expect_err("Should fail");
+            }
+        };
+    }
+
+    test_fail!(cannot_set_1008_too_big, Kxcj9_1008, 8.1);
+    test_fail!(cannot_set_1008_negative, Kxcj9_1008, -0.1);
+    test!(th_1008_min, Kxcj9_1008, 0.0, 0);
+    test!(th_1008_0_5, Kxcj9_1008, 0.5, 8);
+    test!(th_1008_max, Kxcj9_1008, 8.0, 128);
+
+    test_fail!(cannot_set_1018_too_big, Kxcj9_1018, 16.1);
+    test_fail!(cannot_set_1018_negative, Kxcj9_1018, -0.1);
+    test!(th_1018_min, Kxcj9_1018, 0.0, 0);
+    test!(th_1018_0_5, Kxcj9_1018, 0.5, 4);
+    test!(th_1018_max, Kxcj9_1018, 16.0, 128);
 }

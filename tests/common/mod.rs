@@ -18,6 +18,7 @@ impl Register {
     pub const DATA_CTRL: u8 = 0x21;
     pub const WAKEUP_TIMER: u8 = 0x29;
     pub const SELF_TEST: u8 = 0x3A;
+    pub const WAKEUP_THRESHOLD: u8 = 0x6A;
 }
 
 pub struct BitFlags;

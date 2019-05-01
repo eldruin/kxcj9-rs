@@ -19,6 +19,7 @@ impl Register {
     const DATA_CTRL: u8 = 0x21;
     const WAKEUP_TIMER: u8 = 0x29;
     const SELF_TEST: u8 = 0x3A;
+    const WAKEUP_THRESHOLD: u8 = 0x6A;
 }
 
 struct BitFlags;
@@ -157,6 +158,7 @@ where
 impl<I2C, E, IC> Kxcj9<I2C, IC>
 where
     I2C: i2c::WriteRead<Error = E> + i2c::Write<Error = E>,
+    IC: ScaledDevice,
 {
     /// Read unscaled acceleration sensor data
     pub fn read_unscaled(&mut self) -> Result<UnscaledMeasurement, Error<E>> {
@@ -279,6 +281,7 @@ where
         if config.fault_count == 0 {
             return Err(Error::InvalidSetting);
         }
+        let threshold = IC::get_wake_up_threshold(config.threshold)?;
 
         let int_ctrl2 = config.trigger_motion.get_int_ctrl2();
         let ctrl2 = self.ctrl2.with_low(0b0000_0111);
@@ -297,6 +300,7 @@ where
         self.write_register(Register::INT_CTRL2, int_ctrl2)?;
         self.write_register(Register::CTRL2, ctrl2.bits)?;
         self.write_register(Register::WAKEUP_TIMER, config.fault_count)?;
+        self.write_register(Register::WAKEUP_THRESHOLD, threshold)?;
         self.ctrl2 = ctrl2;
         self.update_ctrl1(ctrl1)
     }
@@ -412,7 +416,12 @@ where
     fn prepare_ctrl1_to_change_settings(&mut self) -> Result<(), Error<E>> {
         self.disable()
     }
+}
 
+impl<I2C, E, IC> Kxcj9<I2C, IC>
+where
+    I2C: i2c::WriteRead<Error = E> + i2c::Write<Error = E>,
+{
     fn update_ctrl1(&mut self, value: Config) -> Result<(), Error<E>> {
         self.write_register(Register::CTRL1, value.bits)?;
         self.ctrl1 = value;

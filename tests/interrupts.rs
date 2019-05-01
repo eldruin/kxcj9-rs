@@ -4,7 +4,7 @@ use hal::i2c::Transaction as I2cTrans;
 use kxcj9::{InterruptInfo, WakeUpInterruptConfig, WakeUpOutputDataRate, WakeUpTriggerMotion};
 
 mod common;
-use common::{destroy, new_1018, BitFlags as BF, Register as Reg, DEV_ADDR};
+use common::{destroy, new_1008, new_1018, BitFlags as BF, Register as Reg, DEV_ADDR};
 
 #[test]
 fn interrupt_has_happened() {
@@ -106,9 +106,10 @@ fn can_enable_wake_up_int() {
         I2cTrans::write(DEV_ADDR, vec![Reg::INT_CTRL2, 0b0011_1111]),
         I2cTrans::write(DEV_ADDR, vec![Reg::CTRL2, 0]),
         I2cTrans::write(DEV_ADDR, vec![Reg::WAKEUP_TIMER, 1]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::WAKEUP_THRESHOLD, 8]),
         I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1 | BF::WUFE]),
     ];
-    let mut sensor = new_1018(&transactions);
+    let mut sensor = new_1008(&transactions);
     sensor.enable().unwrap();
     let config = WakeUpInterruptConfig::default();
     sensor.enable_wake_up_interrupt(config).unwrap();
@@ -123,9 +124,10 @@ fn enable_wu_int_disable_all() {
         I2cTrans::write(DEV_ADDR, vec![Reg::INT_CTRL2, 0]),
         I2cTrans::write(DEV_ADDR, vec![Reg::CTRL2, 0]),
         I2cTrans::write(DEV_ADDR, vec![Reg::WAKEUP_TIMER, 1]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::WAKEUP_THRESHOLD, 8]),
         I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1 | BF::WUFE]),
     ];
-    let mut sensor = new_1018(&transactions);
+    let mut sensor = new_1008(&transactions);
     sensor.enable().unwrap();
     let trigger_motion = WakeUpTriggerMotion {
         x_negative: false,
@@ -151,9 +153,10 @@ fn enable_wu_int_enable_all() {
         I2cTrans::write(DEV_ADDR, vec![Reg::INT_CTRL2, 0b0011_1111]),
         I2cTrans::write(DEV_ADDR, vec![Reg::CTRL2, 0]),
         I2cTrans::write(DEV_ADDR, vec![Reg::WAKEUP_TIMER, 1]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::WAKEUP_THRESHOLD, 8]),
         I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1 | BF::WUFE]),
     ];
-    let mut sensor = new_1018(&transactions);
+    let mut sensor = new_1008(&transactions);
     sensor.enable().unwrap();
     let trigger_motion = WakeUpTriggerMotion::default();
     let config = WakeUpInterruptConfig {
@@ -174,9 +177,10 @@ macro_rules! enable_wu_int_motion_test {
                 I2cTrans::write(DEV_ADDR, vec![Reg::INT_CTRL2, $int_ctrl2]),
                 I2cTrans::write(DEV_ADDR, vec![Reg::CTRL2, 0]),
                 I2cTrans::write(DEV_ADDR, vec![Reg::WAKEUP_TIMER, 1]),
+                I2cTrans::write(DEV_ADDR, vec![Reg::WAKEUP_THRESHOLD, 8]),
                 I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1 | BF::WUFE]),
             ];
-            let mut sensor = new_1018(&transactions);
+            let mut sensor = new_1008(&transactions);
             sensor.enable().unwrap();
             let mut trigger_motion = WakeUpTriggerMotion {
                 x_negative: false,
@@ -214,9 +218,10 @@ macro_rules! set_wu_odr_test {
                 I2cTrans::write(DEV_ADDR, vec![Reg::INT_CTRL2, 0b0011_1111]),
                 I2cTrans::write(DEV_ADDR, vec![Reg::CTRL2, $ctrl2]),
                 I2cTrans::write(DEV_ADDR, vec![Reg::WAKEUP_TIMER, 1]),
+                I2cTrans::write(DEV_ADDR, vec![Reg::WAKEUP_THRESHOLD, 8]),
                 I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1 | BF::WUFE]),
             ];
-            let mut sensor = new_1018(&transactions);
+            let mut sensor = new_1008(&transactions);
             sensor.enable().unwrap();
             let data_rate = WakeUpOutputDataRate::$variant;
             let config = WakeUpInterruptConfig {
@@ -246,9 +251,10 @@ fn can_set_wake_up_fault_count() {
         I2cTrans::write(DEV_ADDR, vec![Reg::INT_CTRL2, 0b0011_1111]),
         I2cTrans::write(DEV_ADDR, vec![Reg::CTRL2, 0]),
         I2cTrans::write(DEV_ADDR, vec![Reg::WAKEUP_TIMER, 0xAB]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::WAKEUP_THRESHOLD, 8]),
         I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1 | BF::WUFE]),
     ];
-    let mut sensor = new_1018(&transactions);
+    let mut sensor = new_1008(&transactions);
     sensor.enable().unwrap();
     let config = WakeUpInterruptConfig {
         fault_count: 0xAB,
@@ -268,5 +274,48 @@ fn cannot_set_wake_up_fault_count_0() {
     sensor
         .enable_wake_up_interrupt(config)
         .expect_err("Should return error");
+    destroy(sensor);
+}
+
+macro_rules! wrong_th_test {
+    ($name:ident, $create:ident, $threshold:expr) => {
+        #[test]
+        fn $name() {
+            let mut sensor = $create(&[]);
+            let config = WakeUpInterruptConfig {
+                threshold: $threshold,
+                ..Default::default()
+            };
+            sensor
+                .enable_wake_up_interrupt(config)
+                .expect_err("Should return error");
+            destroy(sensor);
+        }
+    };
+}
+
+wrong_th_test!(cannot_set_wake_up_th_too_low_1018, new_1018, -0.1);
+wrong_th_test!(cannot_set_wake_up_th_too_high_1018, new_1018, 16.1);
+wrong_th_test!(cannot_set_wake_up_th_too_low_1008, new_1008, -0.1);
+wrong_th_test!(cannot_set_wake_up_th_too_high_1008, new_1008, 8.1);
+
+#[test]
+fn can_set_wake_up_th_2() {
+    let transactions = [
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, 0]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::INT_CTRL2, 0b0011_1111]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL2, 0]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::WAKEUP_TIMER, 1]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::WAKEUP_THRESHOLD, 32]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1 | BF::WUFE]),
+    ];
+    let mut sensor = new_1008(&transactions);
+    sensor.enable().unwrap();
+    let config = WakeUpInterruptConfig {
+        threshold: 2.0,
+        ..Default::default()
+    };
+    sensor.enable_wake_up_interrupt(config).unwrap();
     destroy(sensor);
 }

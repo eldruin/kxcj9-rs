@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Enable/disable MEMS self-test function.
+- Support interrupts.
 
 ### Changed
 - [breaking-change] Renamed communication self-test function `self_test()` to

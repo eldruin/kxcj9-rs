@@ -1,7 +1,7 @@
 extern crate embedded_hal_mock as hal;
 extern crate kxcj9;
 use hal::i2c::Transaction as I2cTrans;
-use kxcj9::{InterruptInfo, WakeUpOutputDataRate, WakeUpTriggerMotion};
+use kxcj9::{InterruptInfo, WakeUpInterruptConfig, WakeUpOutputDataRate, WakeUpTriggerMotion};
 
 mod common;
 use common::{destroy, new_1018, BitFlags as BF, Register as Reg, DEV_ADDR};
@@ -118,10 +118,11 @@ fn config_wu_int_disable_all() {
         z_negative: false,
         z_positive: false,
     };
-    let odr = WakeUpOutputDataRate::default();
-    sensor
-        .configure_wake_up_interrupt(trigger_motion, odr)
-        .unwrap();
+    let config = WakeUpInterruptConfig {
+        trigger_motion,
+        ..Default::default()
+    };
+    sensor.configure_wake_up_interrupt(config).unwrap();
     destroy(sensor);
 }
 
@@ -137,10 +138,11 @@ fn config_wu_int_enable_all() {
     let mut sensor = new_1018(&transactions);
     sensor.enable().unwrap();
     let trigger_motion = WakeUpTriggerMotion::default();
-    let odr = WakeUpOutputDataRate::default();
-    sensor
-        .configure_wake_up_interrupt(trigger_motion, odr)
-        .unwrap();
+    let config = WakeUpInterruptConfig {
+        trigger_motion,
+        ..Default::default()
+    };
+    sensor.configure_wake_up_interrupt(config).unwrap();
     destroy(sensor);
 }
 
@@ -166,10 +168,11 @@ macro_rules! config_wu_int_motion_test {
                 z_positive: false,
             };
             trigger_motion.$direction = true;
-            let odr = WakeUpOutputDataRate::default();
-            sensor
-                .configure_wake_up_interrupt(trigger_motion, odr)
-                .unwrap();
+            let config = WakeUpInterruptConfig {
+                trigger_motion,
+                ..Default::default()
+            };
+            sensor.configure_wake_up_interrupt(config).unwrap();
             destroy(sensor);
         }
     };
@@ -195,11 +198,12 @@ macro_rules! set_wu_odr_test {
             ];
             let mut sensor = new_1018(&transactions);
             sensor.enable().unwrap();
-            let trigger_motion = WakeUpTriggerMotion::default();
-            let odr = WakeUpOutputDataRate::$variant;
-            sensor
-                .configure_wake_up_interrupt(trigger_motion, odr)
-                .unwrap();
+            let data_rate = WakeUpOutputDataRate::$variant;
+            let config = WakeUpInterruptConfig {
+                data_rate,
+                ..Default::default()
+            };
+            sensor.configure_wake_up_interrupt(config).unwrap();
             destroy(sensor);
         }
     };

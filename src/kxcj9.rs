@@ -2,7 +2,7 @@ use {
     conversion::{convert_12bit, convert_14bit, convert_8bit},
     i2c, ic, nb, Config, Error, GScale16, GScale8, InterruptInfo, Kxcj9, Measurement,
     OutputDataRate, PhantomData, Resolution, ScaleMeasurement, SlaveAddr, UnscaledMeasurement,
-    WakeUpOutputDataRate, WakeUpTriggerMotion, DEVICE_BASE_ADDRESS,
+    WakeUpInterruptConfig, DEVICE_BASE_ADDRESS,
 };
 
 struct Register;
@@ -286,33 +286,32 @@ where
     /// Configure wake-up motion detection interrupt
     pub fn configure_wake_up_interrupt(
         &mut self,
-        trigger_motion: WakeUpTriggerMotion,
-        output_data_rate: WakeUpOutputDataRate,
+        config: WakeUpInterruptConfig,
     ) -> Result<(), Error<E>> {
         use WakeUpOutputDataRate as ODR;
 
         let mut int_config = 0;
-        if trigger_motion.x_negative {
+        if config.trigger_motion.x_negative {
             int_config |= BitFlags::XNWU;
         }
-        if trigger_motion.x_positive {
+        if config.trigger_motion.x_positive {
             int_config |= BitFlags::XPWU;
         }
-        if trigger_motion.y_negative {
+        if config.trigger_motion.y_negative {
             int_config |= BitFlags::YNWU;
         }
-        if trigger_motion.y_positive {
+        if config.trigger_motion.y_positive {
             int_config |= BitFlags::YPWU;
         }
-        if trigger_motion.z_negative {
+        if config.trigger_motion.z_negative {
             int_config |= BitFlags::ZNWU;
         }
-        if trigger_motion.z_positive {
+        if config.trigger_motion.z_positive {
             int_config |= BitFlags::ZPWU;
         }
 
         let ctrl2 = self.ctrl2.with_low(0b0000_0111);
-        let ctrl2 = match output_data_rate {
+        let ctrl2 = match config.data_rate {
             ODR::Hz0_781 => ctrl2,
             ODR::Hz1_563 => ctrl2.with_high(1),
             ODR::Hz3_125 => ctrl2.with_high(2),

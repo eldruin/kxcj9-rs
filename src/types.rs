@@ -116,6 +116,15 @@ pub struct InterruptInfo {
     pub wake_up_z_positive: bool,
 }
 
+/// Wake-up interrupt configuration
+#[derive(Debug, Default, Clone, Copy)]
+pub struct WakeUpInterruptConfig {
+    /// Motion that triggers the wake-up interrupt.
+    pub trigger_motion: WakeUpTriggerMotion,
+    /// Data rate used for checking on the wake-up motion.
+    pub data_rate: WakeUpOutputDataRate,
+}
+
 /// Wake-up interrupt trigger motion
 #[derive(Debug, Clone, Copy)]
 pub struct WakeUpTriggerMotion {

@@ -201,8 +201,8 @@ pub struct Kxcj9<I2C, IC> {
 }
 
 mod conversion;
-mod scale_measurement;
-pub use scale_measurement::ScaleMeasurement;
+mod scaled_device;
+pub use scaled_device::ScaledDevice;
 mod kxcj9;
 pub use kxcj9::{GScaleConfig, MeasurementBits};
 

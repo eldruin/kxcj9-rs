@@ -1,7 +1,7 @@
 use {
     conversion::{convert_12bit, convert_14bit, convert_8bit},
     i2c, ic, nb, Config, Error, GScale16, GScale8, InterruptInfo, Kxcj9, Measurement,
-    OutputDataRate, PhantomData, Resolution, ScaleMeasurement, SlaveAddr, UnscaledMeasurement,
+    OutputDataRate, PhantomData, Resolution, ScaledDevice, SlaveAddr, UnscaledMeasurement,
     WakeUpInterruptConfig, WakeUpTriggerMotion, DEVICE_BASE_ADDRESS,
 };
 
@@ -141,7 +141,7 @@ where
 impl<I2C, E, IC> Kxcj9<I2C, IC>
 where
     I2C: i2c::WriteRead<Error = E> + i2c::Write<Error = E>,
-    IC: ScaleMeasurement,
+    IC: ScaledDevice,
 {
     /// Read acceleration sensor data scaled to configured G range
     pub fn read(&mut self) -> Result<Measurement, Error<E>> {

@@ -1,7 +1,7 @@
 use {ic, private, GScaleConfig, Measurement, MeasurementBits, UnscaledMeasurement};
 
 #[doc(hidden)]
-pub trait ScaleMeasurement: private::Sealed {
+pub trait ScaledDevice: private::Sealed {
     fn get_scaled(
         unscaled: UnscaledMeasurement,
         bits: MeasurementBits,
@@ -9,7 +9,7 @@ pub trait ScaleMeasurement: private::Sealed {
     ) -> Measurement;
 }
 
-impl ScaleMeasurement for ic::Kxcj9_1008 {
+impl ScaledDevice for ic::Kxcj9_1008 {
     fn get_scaled(
         unscaled: UnscaledMeasurement,
         bits: MeasurementBits,
@@ -30,7 +30,7 @@ impl ScaleMeasurement for ic::Kxcj9_1008 {
     }
 }
 
-impl ScaleMeasurement for ic::Kxcj9_1018 {
+impl ScaledDevice for ic::Kxcj9_1018 {
     fn get_scaled(
         unscaled: UnscaledMeasurement,
         bits: MeasurementBits,

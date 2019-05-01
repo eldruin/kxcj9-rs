@@ -117,12 +117,28 @@ pub struct InterruptInfo {
 }
 
 /// Wake-up interrupt configuration
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct WakeUpInterruptConfig {
     /// Motion that triggers the wake-up interrupt.
     pub trigger_motion: WakeUpTriggerMotion,
     /// Data rate used for checking on the wake-up motion.
     pub data_rate: WakeUpOutputDataRate,
+    /// Number of faults necessary to trigger a wake-up interrupt.
+    ///
+    /// Each count accounts for a delay of `1/data_rate`.
+    /// The minimum value is 1. Configuring with `fault_count = 0`
+    /// will return an `Error::InvalidSetting`.
+    pub fault_count: u8,
+}
+
+impl Default for WakeUpInterruptConfig {
+    fn default() -> Self {
+        WakeUpInterruptConfig {
+            trigger_motion: WakeUpTriggerMotion::default(),
+            data_rate: WakeUpOutputDataRate::default(),
+            fault_count: 1,
+        }
+    }
 }
 
 /// Wake-up interrupt trigger motion

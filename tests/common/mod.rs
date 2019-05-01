@@ -16,6 +16,7 @@ impl Register {
     pub const CTRL2: u8 = 0x1D;
     pub const INT_CTRL2: u8 = 0x1F;
     pub const DATA_CTRL: u8 = 0x21;
+    pub const WAKEUP_TIMER: u8 = 0x29;
     pub const SELF_TEST: u8 = 0x3A;
 }
 

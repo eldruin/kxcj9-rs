@@ -17,6 +17,7 @@ impl Register {
     const CTRL2: u8 = 0x1D;
     const INT_CTRL2: u8 = 0x1F;
     const DATA_CTRL: u8 = 0x21;
+    const WAKEUP_TIMER: u8 = 0x29;
     const SELF_TEST: u8 = 0x3A;
 }
 
@@ -289,6 +290,9 @@ where
         config: WakeUpInterruptConfig,
     ) -> Result<(), Error<E>> {
         use WakeUpOutputDataRate as ODR;
+        if config.fault_count == 0 {
+            return Err(Error::InvalidSetting);
+        }
 
         let mut int_config = 0;
         if config.trigger_motion.x_negative {
@@ -325,6 +329,7 @@ where
         self.prepare_ctrl1_to_change_settings()?;
         self.write_register(Register::INT_CTRL2, int_config)?;
         self.write_register(Register::CTRL2, ctrl2.bits)?;
+        self.write_register(Register::WAKEUP_TIMER, config.fault_count)?;
         self.ctrl2 = ctrl2;
         self.update_ctrl1(previous_ctrl1)
     }

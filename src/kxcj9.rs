@@ -270,22 +270,8 @@ where
         self.update_ctrl1(config)
     }
 
-    /// Enable wake-up motion detected interrupt.
-    pub fn enable_wake_up_interrupt(&mut self) -> Result<(), Error<E>> {
-        let config = self.ctrl1.with_high(BitFlags::WUFE);
-        self.prepare_ctrl1_to_change_settings()?;
-        self.update_ctrl1(config)
-    }
-
-    /// Disable wake-up motion detected interrupt.
-    pub fn disable_wake_up_interrupt(&mut self) -> Result<(), Error<E>> {
-        let config = self.ctrl1.with_low(BitFlags::WUFE);
-        self.prepare_ctrl1_to_change_settings()?;
-        self.update_ctrl1(config)
-    }
-
-    /// Configure wake-up motion detection interrupt
-    pub fn configure_wake_up_interrupt(
+    /// Configure and enable wake-up motion detected interrupt.
+    pub fn enable_wake_up_interrupt(
         &mut self,
         config: WakeUpInterruptConfig,
     ) -> Result<(), Error<E>> {
@@ -325,13 +311,20 @@ where
             ODR::Hz50 => ctrl2.with_high(6),
             ODR::Hz100 => ctrl2.with_high(7),
         };
-        let previous_ctrl1 = self.ctrl1;
+        let ctrl1 = self.ctrl1.with_high(BitFlags::WUFE);
         self.prepare_ctrl1_to_change_settings()?;
         self.write_register(Register::INT_CTRL2, int_config)?;
         self.write_register(Register::CTRL2, ctrl2.bits)?;
         self.write_register(Register::WAKEUP_TIMER, config.fault_count)?;
         self.ctrl2 = ctrl2;
-        self.update_ctrl1(previous_ctrl1)
+        self.update_ctrl1(ctrl1)
+    }
+
+    /// Disable wake-up motion detected interrupt.
+    pub fn disable_wake_up_interrupt(&mut self) -> Result<(), Error<E>> {
+        let config = self.ctrl1.with_low(BitFlags::WUFE);
+        self.prepare_ctrl1_to_change_settings()?;
+        self.update_ctrl1(config)
     }
 
     /// Check if any interrupt has happened

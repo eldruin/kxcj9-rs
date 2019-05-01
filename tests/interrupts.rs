@@ -96,18 +96,34 @@ macro_rules! change_ctrl1_test {
 
 change_ctrl1_test!(can_enable_drdy_int, enable_data_ready_interrupt, BF::DRDYE);
 change_ctrl1_test!(can_disable_drdy_int, disable_data_ready_interrupt, 0);
-change_ctrl1_test!(can_enable_wake_up_int, enable_wake_up_interrupt, BF::WUFE);
 change_ctrl1_test!(can_disable_wake_up_int, disable_wake_up_interrupt, 0);
 
 #[test]
-fn config_wu_int_disable_all() {
+fn can_enable_wake_up_int() {
+    let transactions = [
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, 0]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::INT_CTRL2, 0b0011_1111]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL2, 0]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::WAKEUP_TIMER, 1]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1 | BF::WUFE]),
+    ];
+    let mut sensor = new_1018(&transactions);
+    sensor.enable().unwrap();
+    let config = WakeUpInterruptConfig::default();
+    sensor.enable_wake_up_interrupt(config).unwrap();
+    destroy(sensor);
+}
+
+#[test]
+fn enable_wu_int_disable_all() {
     let transactions = [
         I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1]),
         I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, 0]),
         I2cTrans::write(DEV_ADDR, vec![Reg::INT_CTRL2, 0]),
         I2cTrans::write(DEV_ADDR, vec![Reg::CTRL2, 0]),
         I2cTrans::write(DEV_ADDR, vec![Reg::WAKEUP_TIMER, 1]),
-        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1 | BF::WUFE]),
     ];
     let mut sensor = new_1018(&transactions);
     sensor.enable().unwrap();
@@ -123,19 +139,19 @@ fn config_wu_int_disable_all() {
         trigger_motion,
         ..Default::default()
     };
-    sensor.configure_wake_up_interrupt(config).unwrap();
+    sensor.enable_wake_up_interrupt(config).unwrap();
     destroy(sensor);
 }
 
 #[test]
-fn config_wu_int_enable_all() {
+fn enable_wu_int_enable_all() {
     let transactions = [
         I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1]),
         I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, 0]),
         I2cTrans::write(DEV_ADDR, vec![Reg::INT_CTRL2, 0b0011_1111]),
         I2cTrans::write(DEV_ADDR, vec![Reg::CTRL2, 0]),
         I2cTrans::write(DEV_ADDR, vec![Reg::WAKEUP_TIMER, 1]),
-        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1 | BF::WUFE]),
     ];
     let mut sensor = new_1018(&transactions);
     sensor.enable().unwrap();
@@ -144,11 +160,11 @@ fn config_wu_int_enable_all() {
         trigger_motion,
         ..Default::default()
     };
-    sensor.configure_wake_up_interrupt(config).unwrap();
+    sensor.enable_wake_up_interrupt(config).unwrap();
     destroy(sensor);
 }
 
-macro_rules! config_wu_int_motion_test {
+macro_rules! enable_wu_int_motion_test {
     ($name:ident, $direction:ident, $int_ctrl2:expr) => {
         #[test]
         fn $name() {
@@ -158,7 +174,7 @@ macro_rules! config_wu_int_motion_test {
                 I2cTrans::write(DEV_ADDR, vec![Reg::INT_CTRL2, $int_ctrl2]),
                 I2cTrans::write(DEV_ADDR, vec![Reg::CTRL2, 0]),
                 I2cTrans::write(DEV_ADDR, vec![Reg::WAKEUP_TIMER, 1]),
-                I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1]),
+                I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1 | BF::WUFE]),
             ];
             let mut sensor = new_1018(&transactions);
             sensor.enable().unwrap();
@@ -175,18 +191,18 @@ macro_rules! config_wu_int_motion_test {
                 trigger_motion,
                 ..Default::default()
             };
-            sensor.configure_wake_up_interrupt(config).unwrap();
+            sensor.enable_wake_up_interrupt(config).unwrap();
             destroy(sensor);
         }
     };
 }
 
-config_wu_int_motion_test!(can_enable_wu_int_motion_x_neg, x_negative, BF::XNWU);
-config_wu_int_motion_test!(can_enable_wu_int_motion_x_pos, x_positive, BF::XPWU);
-config_wu_int_motion_test!(can_enable_wu_int_motion_y_neg, y_negative, BF::YNWU);
-config_wu_int_motion_test!(can_enable_wu_int_motion_y_pos, y_positive, BF::YPWU);
-config_wu_int_motion_test!(can_enable_wu_int_motion_z_neg, z_negative, BF::ZNWU);
-config_wu_int_motion_test!(can_enable_wu_int_motion_z_pos, z_positive, BF::ZPWU);
+enable_wu_int_motion_test!(can_enable_wu_int_motion_x_neg, x_negative, BF::XNWU);
+enable_wu_int_motion_test!(can_enable_wu_int_motion_x_pos, x_positive, BF::XPWU);
+enable_wu_int_motion_test!(can_enable_wu_int_motion_y_neg, y_negative, BF::YNWU);
+enable_wu_int_motion_test!(can_enable_wu_int_motion_y_pos, y_positive, BF::YPWU);
+enable_wu_int_motion_test!(can_enable_wu_int_motion_z_neg, z_negative, BF::ZNWU);
+enable_wu_int_motion_test!(can_enable_wu_int_motion_z_pos, z_positive, BF::ZPWU);
 
 macro_rules! set_wu_odr_test {
     ($name:ident, $variant:ident, $ctrl2:expr) => {
@@ -198,7 +214,7 @@ macro_rules! set_wu_odr_test {
                 I2cTrans::write(DEV_ADDR, vec![Reg::INT_CTRL2, 0b0011_1111]),
                 I2cTrans::write(DEV_ADDR, vec![Reg::CTRL2, $ctrl2]),
                 I2cTrans::write(DEV_ADDR, vec![Reg::WAKEUP_TIMER, 1]),
-                I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1]),
+                I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1 | BF::WUFE]),
             ];
             let mut sensor = new_1018(&transactions);
             sensor.enable().unwrap();
@@ -207,7 +223,7 @@ macro_rules! set_wu_odr_test {
                 data_rate,
                 ..Default::default()
             };
-            sensor.configure_wake_up_interrupt(config).unwrap();
+            sensor.enable_wake_up_interrupt(config).unwrap();
             destroy(sensor);
         }
     };
@@ -230,7 +246,7 @@ fn can_set_wake_up_fault_count() {
         I2cTrans::write(DEV_ADDR, vec![Reg::INT_CTRL2, 0b0011_1111]),
         I2cTrans::write(DEV_ADDR, vec![Reg::CTRL2, 0]),
         I2cTrans::write(DEV_ADDR, vec![Reg::WAKEUP_TIMER, 0xAB]),
-        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1]),
+        I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1 | BF::WUFE]),
     ];
     let mut sensor = new_1018(&transactions);
     sensor.enable().unwrap();
@@ -238,7 +254,7 @@ fn can_set_wake_up_fault_count() {
         fault_count: 0xAB,
         ..Default::default()
     };
-    sensor.configure_wake_up_interrupt(config).unwrap();
+    sensor.enable_wake_up_interrupt(config).unwrap();
     destroy(sensor);
 }
 
@@ -250,7 +266,7 @@ fn cannot_set_wake_up_fault_count_0() {
         ..Default::default()
     };
     sensor
-        .configure_wake_up_interrupt(config)
+        .enable_wake_up_interrupt(config)
         .expect_err("Should return error");
     destroy(sensor);
 }

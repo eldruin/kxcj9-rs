@@ -128,6 +128,30 @@
 //! # }
 //! ```
 //!
+//! ### Configure and enable wake-up interrupt
+//!
+//! ```no_run
+//! extern crate kxcj9;
+//! extern crate linux_embedded_hal as hal;
+//! use kxcj9::{
+//!     Kxcj9, SlaveAddr, WakeUpInterruptConfig, WakeUpOutputDataRate,
+//!     WakeUpTriggerMotion,
+//! };
+//!
+//! # fn main() {
+//! let dev = hal::I2cdev::new("/dev/i2c-1").unwrap();
+//! let mut sensor = Kxcj9::new_1008(dev, SlaveAddr::default());
+//! let config = WakeUpInterruptConfig {
+//!     trigger_motion: WakeUpTriggerMotion::default(),
+//!     data_rate: WakeUpOutputDataRate::Hz3_125,
+//!     fault_count: 3,
+//!     threshold: 0.5, // G
+//! };
+//! // 0.5g acceleration must be present for 0.96s to trigger interrupt
+//! sensor.enable_wake_up_interrupt(config).unwrap();
+//! # }
+//! ```
+//!
 //! ### Perform a software reset and wait for it to finish
 //!
 //! ```no_run

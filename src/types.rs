@@ -206,6 +206,25 @@ impl Default for WakeUpOutputDataRate {
     }
 }
 
+/// Physical interrupt pin polarity
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum InterruptPinPolarity {
+    /// Low state when active
+    ActiveLow,
+    /// High state when active (default)
+    ActiveHigh,
+}
+
+/// Physical interrupt pin latching behavior
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum InterruptPinLatching {
+    /// Interrupt pin will transmit a single pulse with a period
+    /// of `0.03ms - 0.05ms` when triggered.
+    NonLatching,
+    /// Interrupt pin stays active until cleared with `clear_interrupts()`. (default)
+    Latching,
+}
+
 /// Possible slave addresses
 #[derive(Debug, Clone, Copy)]
 pub enum SlaveAddr {

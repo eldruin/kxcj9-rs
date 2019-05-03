@@ -1,8 +1,9 @@
 use {
     conversion::{convert_12bit, convert_14bit, convert_8bit},
-    i2c, ic, nb, Config, Error, GScale16, GScale8, InterruptInfo, Kxcj9, Measurement,
-    OutputDataRate, PhantomData, Resolution, ScaledDevice, SlaveAddr, UnscaledMeasurement,
-    WakeUpInterruptConfig, WakeUpTriggerMotion, DEVICE_BASE_ADDRESS,
+    i2c, ic, nb, Config, Error, GScale16, GScale8, InterruptInfo, InterruptPinLatching,
+    InterruptPinPolarity, Kxcj9, Measurement, OutputDataRate, PhantomData, Resolution,
+    ScaledDevice, SlaveAddr, UnscaledMeasurement, WakeUpInterruptConfig, WakeUpTriggerMotion,
+    DEVICE_BASE_ADDRESS,
 };
 
 struct Register;
@@ -15,6 +16,7 @@ impl Register {
     const INT_REL: u8 = 0x1A;
     const CTRL1: u8 = 0x1B;
     const CTRL2: u8 = 0x1D;
+    const INT_CTRL1: u8 = 0x1E;
     const INT_CTRL2: u8 = 0x1F;
     const DATA_CTRL: u8 = 0x21;
     const WAKEUP_TIMER: u8 = 0x29;
@@ -41,9 +43,13 @@ impl BitFlags {
     const YNWU: u8 = 0b0000_1000;
     const XPWU: u8 = 0b0001_0000;
     const XNWU: u8 = 0b0010_0000;
+    const IEN: u8 = 0b0010_0000;
+    const IEA: u8 = 0b0001_0000;
+    const IEL: u8 = 0b0000_1000;
 }
 
 const DATA_CTRL_DEFAULT: u8 = 0x02;
+const INT_CTRL1_DEFAULT: u8 = 0x10;
 
 #[doc(hidden)]
 pub enum MeasurementBits {
@@ -92,6 +98,9 @@ where
             address: address.addr(DEVICE_BASE_ADDRESS),
             ctrl1: Config::default(),
             ctrl2: Config::default(),
+            int_ctrl1: Config {
+                bits: INT_CTRL1_DEFAULT,
+            },
             data_ctrl: DATA_CTRL_DEFAULT,
             was_reset_started: false,
             _ic: PhantomData,
@@ -110,6 +119,9 @@ where
             address: address.addr(DEVICE_BASE_ADDRESS),
             ctrl1: Config::default(),
             ctrl2: Config::default(),
+            int_ctrl1: Config {
+                bits: INT_CTRL1_DEFAULT,
+            },
             data_ctrl: DATA_CTRL_DEFAULT,
             was_reset_started: false,
             _ic: PhantomData,
@@ -310,6 +322,58 @@ where
         let config = self.ctrl1.with_low(BitFlags::WUFE);
         self.prepare_ctrl1_to_change_settings()?;
         self.update_ctrl1(config)
+    }
+
+    /// Enable physical interrupt pin.
+    pub fn enable_interrupt_pin(&mut self) -> Result<(), Error<E>> {
+        let previous_ctrl1 = self.ctrl1;
+        let int_ctrl1 = self.int_ctrl1.with_high(BitFlags::IEN);
+        self.prepare_ctrl1_to_change_settings()?;
+        self.write_register(Register::INT_CTRL1, int_ctrl1.bits)?;
+        self.int_ctrl1 = int_ctrl1;
+        self.update_ctrl1(previous_ctrl1)
+    }
+
+    /// Disable physical interrupt pin.
+    pub fn disable_interrupt_pin(&mut self) -> Result<(), Error<E>> {
+        let previous_ctrl1 = self.ctrl1;
+        let int_ctrl1 = self.int_ctrl1.with_low(BitFlags::IEN);
+        self.prepare_ctrl1_to_change_settings()?;
+        self.write_register(Register::INT_CTRL1, int_ctrl1.bits)?;
+        self.int_ctrl1 = int_ctrl1;
+        self.update_ctrl1(previous_ctrl1)
+    }
+
+    /// Set physical interrupt pin polarity.
+    pub fn set_interrupt_pin_polarity(
+        &mut self,
+        polarity: InterruptPinPolarity,
+    ) -> Result<(), Error<E>> {
+        let previous_ctrl1 = self.ctrl1;
+        let int_ctrl1 = match polarity {
+            InterruptPinPolarity::ActiveHigh => self.int_ctrl1.with_high(BitFlags::IEA),
+            InterruptPinPolarity::ActiveLow => self.int_ctrl1.with_low(BitFlags::IEA),
+        };
+        self.prepare_ctrl1_to_change_settings()?;
+        self.write_register(Register::INT_CTRL1, int_ctrl1.bits)?;
+        self.int_ctrl1 = int_ctrl1;
+        self.update_ctrl1(previous_ctrl1)
+    }
+
+    /// Set physical interrupt pin latching behavior.
+    pub fn set_interrupt_pin_latching(
+        &mut self,
+        latching: InterruptPinLatching,
+    ) -> Result<(), Error<E>> {
+        let previous_ctrl1 = self.ctrl1;
+        let int_ctrl1 = match latching {
+            InterruptPinLatching::NonLatching => self.int_ctrl1.with_high(BitFlags::IEL),
+            InterruptPinLatching::Latching => self.int_ctrl1.with_low(BitFlags::IEL),
+        };
+        self.prepare_ctrl1_to_change_settings()?;
+        self.write_register(Register::INT_CTRL1, int_ctrl1.bits)?;
+        self.int_ctrl1 = int_ctrl1;
+        self.update_ctrl1(previous_ctrl1)
     }
 
     /// Check if any interrupt has happened

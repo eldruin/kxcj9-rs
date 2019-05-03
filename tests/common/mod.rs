@@ -14,6 +14,7 @@ impl Register {
     pub const INT_REL: u8 = 0x1A;
     pub const CTRL1: u8 = 0x1B;
     pub const CTRL2: u8 = 0x1D;
+    pub const INT_CTRL1: u8 = 0x1E;
     pub const INT_CTRL2: u8 = 0x1F;
     pub const DATA_CTRL: u8 = 0x21;
     pub const WAKEUP_TIMER: u8 = 0x29;
@@ -41,6 +42,9 @@ impl BitFlags {
     pub const YNWU: u8 = 0b0000_1000;
     pub const XPWU: u8 = 0b0001_0000;
     pub const XNWU: u8 = 0b0010_0000;
+    pub const IEN: u8 = 0b0010_0000;
+    pub const IEA: u8 = 0b0001_0000;
+    pub const IEL: u8 = 0b0000_1000;
 }
 
 #[allow(unused)]

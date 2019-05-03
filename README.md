@@ -23,6 +23,9 @@ This driver allows you to:
 - Interrupt support:
     - Enable/disable new acceleration data ready interrupt. See `enable_data_ready_interrupt()`.
     - Enable/disable and configure wake-up motion detected interrupt. See `enable_wake_up_interrupt()`.
+    - Enable/disable physical interrupt pin. See `enable_interrupt_pin()`.
+    - Set physical interrupt pin polarity. See `set_interrupt_pin_polarity()`.
+    - Set physical interrupt pin latching behavior. See `set_interrupt_pin_latching()`.
     - Check if any interrupt has happened. See `has_interrupt_happened()`.
     - Clear interrupts. See `clear_interrupts()`.
     - Read interrupt source information. See `read_interrupt_info()`.

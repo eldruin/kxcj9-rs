@@ -1,7 +1,10 @@
 extern crate embedded_hal_mock as hal;
 extern crate kxcj9;
 use hal::i2c::Transaction as I2cTrans;
-use kxcj9::{InterruptInfo, WakeUpInterruptConfig, WakeUpOutputDataRate, WakeUpTriggerMotion};
+use kxcj9::{
+    InterruptInfo, InterruptPinLatching as IPL, InterruptPinPolarity as IPPOL,
+    WakeUpInterruptConfig, WakeUpOutputDataRate, WakeUpTriggerMotion,
+};
 
 mod common;
 use common::{destroy, new_1008, new_1018, BitFlags as BF, Register as Reg, DEV_ADDR};
@@ -319,3 +322,48 @@ fn can_set_wake_up_th_2() {
     sensor.enable_wake_up_interrupt(config).unwrap();
     destroy(sensor);
 }
+
+macro_rules! int_pin_test {
+    ($name:ident, $method:ident, $int_ctrl1:expr $(, $arg:expr)*) => {
+        #[test]
+        fn $name() {
+            let transactions = [
+                I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1]),
+                I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, 0]),
+                I2cTrans::write(DEV_ADDR, vec![Reg::INT_CTRL1, $int_ctrl1]),
+                I2cTrans::write(DEV_ADDR, vec![Reg::CTRL1, BF::PC1]),
+            ];
+            let mut sensor = new_1018(&transactions);
+            sensor.enable().unwrap();
+            sensor.$method($($arg)*).unwrap();
+            destroy(sensor);
+        }
+    };
+}
+
+int_pin_test!(can_enable_int_pin, enable_interrupt_pin, BF::IEN | BF::IEA);
+int_pin_test!(can_disable_int_pin, disable_interrupt_pin, BF::IEA);
+int_pin_test!(
+    can_set_int_pin_polarity_ah,
+    set_interrupt_pin_polarity,
+    BF::IEA,
+    IPPOL::ActiveHigh
+);
+int_pin_test!(
+    can_set_int_pin_polarity_al,
+    set_interrupt_pin_polarity,
+    0,
+    IPPOL::ActiveLow
+);
+int_pin_test!(
+    can_set_int_pin_latching,
+    set_interrupt_pin_latching,
+    BF::IEA,
+    IPL::Latching
+);
+int_pin_test!(
+    can_set_int_pin_non_latching,
+    set_interrupt_pin_latching,
+    BF::IEA | BF::IEL,
+    IPL::NonLatching
+);

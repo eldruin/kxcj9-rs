@@ -17,6 +17,9 @@
 //! - Interrupt support:
 //!     - Enable/disable new acceleration data ready interrupt. See [`enable_data_ready_interrupt()`].
 //!     - Enable/disable and configure wake-up motion detected interrupt. See [`enable_wake_up_interrupt()`].
+//!     - Enable/disable physical interrupt pin. See [`enable_interrupt_pin()`].
+//!     - Set physical interrupt pin polarity. See [`set_interrupt_pin_polarity()`].
+//!     - Set physical interrupt pin latching behavior. See [`set_interrupt_pin_latching()`].
 //!     - Check if any interrupt has happened. See [`has_interrupt_happened()`].
 //!     - Clear interrupts. See [`clear_interrupts()`].
 //!     - Read interrupt source information. See [`read_interrupt_info()`].
@@ -33,6 +36,9 @@
 //! [`enable_mems_self_test()`]: struct.Kxcj9.html#method.enable_mems_self_test
 //! [`enable_data_ready_interrupt()`]: struct.Kxcj9.html#method.enable_data_ready_interrupt
 //! [`enable_wake_up_interrupt()`]: struct.Kxcj9.html#method.enable_wake_up_interrupt
+//! [`enable_interrupt_pin()`]: struct.Kxcj9.html#method.enable_interrupt_pin
+//! [`set_interrupt_pin_polarity()`]: struct.Kxcj9.html#method.set_interrupt_pin_polarity
+//! [`set_interrupt_pin_latching()`]: struct.Kxcj9.html#method.set_interrupt_pin_latching
 //! [`has_interrupt_happened()`]: struct.Kxcj9.html#method.has_interrupt_happened
 //! [`clear_interrupts()`]: struct.Kxcj9.html#method.clear_interrupts
 //! [`read_interrupt_info()`]: struct.Kxcj9.html#method.read_interrupt_info
@@ -178,8 +184,9 @@ use hal::blocking::i2c;
 
 mod types;
 pub use types::{
-    Error, GScale16, GScale8, InterruptInfo, Measurement, OutputDataRate, Resolution, SlaveAddr,
-    UnscaledMeasurement, WakeUpInterruptConfig, WakeUpOutputDataRate, WakeUpTriggerMotion,
+    Error, GScale16, GScale8, InterruptInfo, InterruptPinLatching, InterruptPinPolarity,
+    Measurement, OutputDataRate, Resolution, SlaveAddr, UnscaledMeasurement, WakeUpInterruptConfig,
+    WakeUpOutputDataRate, WakeUpTriggerMotion,
 };
 
 const DEVICE_BASE_ADDRESS: u8 = 0xE;
@@ -219,6 +226,7 @@ pub struct Kxcj9<I2C, IC> {
     address: u8,
     ctrl1: Config,
     ctrl2: Config,
+    int_ctrl1: Config,
     data_ctrl: u8,
     was_reset_started: bool,
     _ic: PhantomData<IC>,

@@ -492,7 +492,7 @@ fn is_high(value: u8, mask: u8) -> bool {
 }
 
 impl WakeUpTriggerMotion {
-    fn get_int_ctrl2(&self) -> u8 {
+    fn get_int_ctrl2(self) -> u8 {
         let mut int_ctrl2 = 0;
         if self.x_negative {
             int_ctrl2 |= BitFlags::XNWU;

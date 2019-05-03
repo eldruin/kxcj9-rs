@@ -1,4 +1,4 @@
-# Rust KXCJ9 Ultra-Low-Power Tri-Axis Accelerometer
+# Rust KXCJ9/KXCJB Ultra-Low-Power Tri-Axis Accelerometer Driver
 
 [![crates.io](https://img.shields.io/crates/v/kxcj9.svg)](https://crates.io/crates/kxcj9)
 [![Docs](https://docs.rs/kxcj9/badge.svg)](https://docs.rs/kxcj9)
@@ -6,8 +6,8 @@
 [![Coverage Status](https://coveralls.io/repos/github/eldruin/kxcj9-rs/badge.svg?branch=master)](https://coveralls.io/github/eldruin/kxcj9-rs?branch=master)
 ![Maintenance Intention](https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg)
 
-This is a platform agnostic Rust driver for the KXCJ9 ultra-low-power tri-axis accelerometer
-(up to +/-16g) using the [`embedded-hal`] traits.
+This is a platform agnostic Rust driver for the KXCJ9 and KXCJB ultra-low-power
+tri-axis accelerometers (up to +/-16g) using the [`embedded-hal`] traits.
 
 This driver allows you to:
 - Enable/disable the device. See `enable()`.
@@ -30,15 +30,18 @@ This driver allows you to:
     - Clear interrupts. See `clear_interrupts()`.
     - Read interrupt source information. See `read_interrupt_info()`.
 
-## The device
+## The devices
 
 The KXCJ9 is a high-performance, ultra-low-power, tri-axis accelerometer designed for mobile applications. It offers our best power performance along with an embedded wake-up feature, Fast-mode I²C and up to 14-bit resolution. The KXCJ9 sensor offers improved shock, reflow, and temperature performance, and the ASIC has internal voltage regulators that allow operation from 1.8 V to 3.6 V within the specified product performance.
 
+The KXCJB is the thinnest tri-axis accelerometer available on the market today. This ultra-thin 3x3x0.45mm low-power accelerometer is also one of our most full-featured products. The KXCJB offers up to 14-bit resolution for greater precision. User-selectable parameters include ± 2g, 4g or 8g ranges and Output Data Rates (ODR) with programmable low-pass filter. The KXCJB also features the Kionix XAC sense element, our most advanced sense element, for outstanding stability over temperature, shock and post-reflow performance.
+
 The communication is done through an I2C bidirectional bus.
 
-Datasheet:
+Datasheets:
 - [KXCJ9-1008](http://kionixfs.kionix.com/en/datasheet/KXCJ9-1008%20Specifications%20Rev%205.pdf)
 - [KXCJ9-1018](http://kionixfs.kionix.com/en/datasheet/KXCJ9-1018%20Specifications%20Rev%202.pdf)
+- [KXCJB-1041](http://kionixfs.kionix.com/en/datasheet/KXCJB-1041%20Specifications%20Rev%201.0.pdf)
 
 Application Note:
 - [Getting started with the KXCJ9 and KXCJB](http://kionixfs.kionix.com/en/document/AN028%20Getting%20Started%20with%20the%20KXCJ9%20and%20KXCJB.pdf)
@@ -60,7 +63,7 @@ use kxcj9::{Kxcj9, SlaveAddr};
 fn main() {
     let dev = hal::I2cdev::new("/dev/i2c-1").unwrap();
     let address =  SlaveAddr::default();
-    let mut sensor = Kxcj9::new_1018(dev, address);
+    let mut sensor = Kxcj9::new_kxcj9_1018(dev, address);
     sensor.enable().unwrap();
     let acc = sensor.read().unwrap();
     println!("X: {:2}, Y: {:2}, Z: {:2}", acc.x, acc.y, acc.z);

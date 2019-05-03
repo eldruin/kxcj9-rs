@@ -1,4 +1,4 @@
-//! This is a platform agnostic Rust driver for the KXCJ9 ultra-low-power
+//! This is a platform agnostic Rust driver for the KXCJ9 and KXCJB ultra-low-power
 //! tri-axis accelerometer (up to +/-16g) using the [`embedded-hal`] traits.
 //!
 //! [`embedded-hal`]: https://github.com/rust-embedded/embedded-hal
@@ -43,7 +43,7 @@
 //! [`clear_interrupts()`]: struct.Kxcj9.html#method.clear_interrupts
 //! [`read_interrupt_info()`]: struct.Kxcj9.html#method.read_interrupt_info
 //!
-//! ## The device
+//! ## The devices
 //!
 //! The KXCJ9 is a high-performance, ultra-low-power, tri-axis accelerometer
 //! designed for mobile applications. It offers our best power performance
@@ -52,11 +52,21 @@
 //! performance, and the ASIC has internal voltage regulators that allow
 //! operation from 1.8 V to 3.6 V within the specified product performance.
 //!
+//! The KXCJB is the thinnest tri-axis accelerometer available on the market
+//! today. This ultra-thin 3x3x0.45mm low-power accelerometer is also one of
+//! our most full-featured products. The KXCJB offers up to 14-bit resolution
+//! for greater precision. User-selectable parameters include ± 2g, 4g or 8g
+//! ranges and Output Data Rates (ODR) with programmable low-pass filter.
+//! The KXCJB also features the Kionix XAC sense element, our most advanced
+//! sense element, for outstanding stability over temperature, shock and
+//! post-reflow performance.
+//!
 //! The communication is done through an I2C bidirectional bus.
 //!
 //! Datasheet:
 //! - [KXCJ9-1008](http://kionixfs.kionix.com/en/datasheet/KXCJ9-1008%20Specifications%20Rev%205.pdf)
 //! - [KXCJ9-1018](http://kionixfs.kionix.com/en/datasheet/KXCJ9-1018%20Specifications%20Rev%202.pdf)
+//! - [KXCJB-1041](http://kionixfs.kionix.com/en/datasheet/KXCJB-1041%20Specifications%20Rev%201.0.pdf)
 //!
 //! Application Note:
 //! - [Getting started with the KXCJ9 and KXCJB](http://kionixfs.kionix.com/en/document/AN028%20Getting%20Started%20with%20the%20KXCJ9%20and%20KXCJB.pdf)
@@ -80,7 +90,7 @@
 //! # fn main() {
 //! let dev = hal::I2cdev::new("/dev/i2c-1").unwrap();
 //! let address =  SlaveAddr::default();
-//! let mut sensor = Kxcj9::new_1018(dev, address);
+//! let mut sensor = Kxcj9::new_kxcj9_1018(dev, address);
 //! sensor.enable().unwrap();
 //! let acc = sensor.read().unwrap();
 //! println!("X: {:2}, Y: {:2}, Z: {:2}", acc.x, acc.y, acc.z);
@@ -96,7 +106,7 @@
 //!
 //! # fn main() {
 //! let dev = hal::I2cdev::new("/dev/i2c-1").unwrap();
-//! let mut sensor = Kxcj9::new_1018(dev, SlaveAddr::default());
+//! let mut sensor = Kxcj9::new_kxcj9_1018(dev, SlaveAddr::default());
 //! sensor.enable().unwrap();
 //! sensor.set_resolution(Resolution::High).unwrap();
 //! // with this settings measurements are taken with 12-bit resolution
@@ -112,7 +122,7 @@
 //!
 //! # fn main() {
 //! let dev = hal::I2cdev::new("/dev/i2c-1").unwrap();
-//! let mut sensor = Kxcj9::new_1018(dev, SlaveAddr::default());
+//! let mut sensor = Kxcj9::new_kxcj9_1018(dev, SlaveAddr::default());
 //! sensor.enable().unwrap();
 //! sensor.set_scale(GScale16::G16FP).unwrap();
 //! // with this settings measurements are taken with 14-bit resolution
@@ -128,7 +138,7 @@
 //!
 //! # fn main() {
 //! let dev = hal::I2cdev::new("/dev/i2c-1").unwrap();
-//! let mut sensor = Kxcj9::new_1018(dev, SlaveAddr::default());
+//! let mut sensor = Kxcj9::new_kxcj9_1018(dev, SlaveAddr::default());
 //! sensor.enable().unwrap();
 //! sensor.set_output_data_rate(OutputDataRate::Hz200).unwrap();
 //! # }
@@ -146,7 +156,7 @@
 //!
 //! # fn main() {
 //! let dev = hal::I2cdev::new("/dev/i2c-1").unwrap();
-//! let mut sensor = Kxcj9::new_1008(dev, SlaveAddr::default());
+//! let mut sensor = Kxcj9::new_kxcj9_1008(dev, SlaveAddr::default());
 //! let config = WakeUpInterruptConfig {
 //!     trigger_motion: WakeUpTriggerMotion::default(),
 //!     data_rate: WakeUpOutputDataRate::Hz3_125,
@@ -169,7 +179,7 @@
 //!
 //! # fn main() {
 //! let dev = hal::I2cdev::new("/dev/i2c-1").unwrap();
-//! let mut sensor = Kxcj9::new_1018(dev, SlaveAddr::default());
+//! let mut sensor = Kxcj9::new_kxcj9_1018(dev, SlaveAddr::default());
 //! block!(sensor.reset());
 //! # }
 //! ```
@@ -214,7 +224,7 @@ impl Config {
 
 #[doc(hidden)]
 pub mod ic {
-    pub struct Kxcj9_1008(());
+    pub struct Kxcj9_1008(()); // Also used for KXCJB
     pub struct Kxcj9_1018(());
 }
 

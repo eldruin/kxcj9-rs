@@ -4,11 +4,17 @@ use hal::i2c::Transaction as I2cTrans;
 use kxcj9::{GScale16, GScale8, OutputDataRate, Resolution};
 
 mod common;
-use common::{destroy, new_1008, new_1018, BitFlags as BF, Register as Reg, DEV_ADDR};
+use common::{destroy, new_1008, new_1018, new_1041, BitFlags as BF, Register as Reg, DEV_ADDR};
 
 #[test]
 fn can_create_and_destroy() {
     let sensor = new_1018(&[]);
+    destroy(sensor);
+}
+
+#[test]
+fn can_create_and_destroy_kxcjb() {
+    let sensor = new_1041(&[]);
     destroy(sensor);
 }
 

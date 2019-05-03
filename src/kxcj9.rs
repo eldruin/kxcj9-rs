@@ -92,7 +92,7 @@ where
     I2C: i2c::WriteRead<Error = E> + i2c::Write<Error = E>,
 {
     /// Create new instance of the KXCJ9-1008 device.
-    pub fn new_1008(i2c: I2C, address: SlaveAddr) -> Self {
+    pub fn new_kxcj9_1008(i2c: I2C, address: SlaveAddr) -> Self {
         Kxcj9 {
             i2c,
             address: address.addr(DEVICE_BASE_ADDRESS),
@@ -106,6 +106,12 @@ where
             _ic: PhantomData,
         }
     }
+
+    /// Create new instance of the KXCJB-1041 device.
+    pub fn new_kxcjb_1041(i2c: I2C, address: SlaveAddr) -> Self {
+        // If you find any difference using the KXCJB-1041, please open an issue.
+        Self::new_kxcj9_1008(i2c, address)
+    }
 }
 
 impl<I2C, E> Kxcj9<I2C, ic::Kxcj9_1018>
@@ -113,7 +119,7 @@ where
     I2C: i2c::WriteRead<Error = E> + i2c::Write<Error = E>,
 {
     /// Create new instance of the KXCJ9-1018 device.
-    pub fn new_1018(i2c: I2C, address: SlaveAddr) -> Self {
+    pub fn new_kxcj9_1018(i2c: I2C, address: SlaveAddr) -> Self {
         Kxcj9 {
             i2c,
             address: address.addr(DEVICE_BASE_ADDRESS),

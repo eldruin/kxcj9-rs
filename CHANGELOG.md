@@ -13,8 +13,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Support physical interrupt pin configuration.
 
 ### Changed
+- [breaking-change] Renamed constructor methods `new_1008` -> `new_kxcj9_1008`
+  and `new_1018` -> `new_kxcj9_1018` as support for device KXCJB has been added.
 - [breaking-change] Renamed communication self-test function `self_test()` to
-`communication_self_test()`.
+  `communication_self_test()`.
 
 ## 0.1.0 - 2019-04-28
 

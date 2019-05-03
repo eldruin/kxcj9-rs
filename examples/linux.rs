@@ -7,6 +7,8 @@ fn main() {
     let address = SlaveAddr::default();
     let mut sensor = Kxcj9::new_kxcj9_1018(dev, address);
     sensor.enable().unwrap();
-    let acc = sensor.read().unwrap();
-    println!("X: {:2}, Y: {:2}, Z: {:2}", acc.x, acc.y, acc.z);
+    loop {
+        let acc = sensor.read().unwrap();
+        println!("X: {:2}, Y: {:2}, Z: {:2}", acc.x, acc.y, acc.z);
+    }
 }

@@ -299,9 +299,9 @@ where
         self.prepare_ctrl1_to_change_settings()?;
         self.write_register(Register::INT_CTRL2, int_ctrl2)?;
         self.write_register(Register::CTRL2, ctrl2.bits)?;
+        self.ctrl2 = ctrl2;
         self.write_register(Register::WAKEUP_TIMER, config.fault_count)?;
         self.write_register(Register::WAKEUP_THRESHOLD, threshold)?;
-        self.ctrl2 = ctrl2;
         self.update_ctrl1(ctrl1)
     }
 

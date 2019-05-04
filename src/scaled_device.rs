@@ -35,7 +35,7 @@ impl ScaledDevice for ic::Kxcj9_1008 {
         if threshold < 0.0 || threshold > 8.0 {
             Err(Error::InvalidSetting)
         } else {
-            Ok((threshold * 16.0).round() as u8)
+            Ok((threshold * 16.0 + 0.5) as u8)
         }
     }
 }
@@ -72,7 +72,7 @@ impl ScaledDevice for ic::Kxcj9_1018 {
         if threshold < 0.0 || threshold > 16.0 {
             Err(Error::InvalidSetting)
         } else {
-            Ok((threshold * 8.0).round() as u8)
+            Ok((threshold * 8.0 + 0.5) as u8)
         }
     }
 }

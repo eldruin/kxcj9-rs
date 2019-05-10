@@ -249,15 +249,15 @@ pub struct Kxcj9<I2C, IC> {
 mod conversion;
 mod scaled_device;
 pub use scaled_device::ScaledDevice;
-mod kxcj9;
-pub use kxcj9::{GScaleConfig, MeasurementBits};
+mod device_impl;
+pub use device_impl::{GScaleConfig, MeasurementBits};
 
 mod private {
-    use super::{ic, kxcj9};
+    use super::{device_impl, ic};
     pub trait Sealed {}
 
     impl Sealed for ic::G8Device {}
     impl Sealed for ic::G16Device {}
-    impl Sealed for kxcj9::GScaleConfig {}
-    impl Sealed for kxcj9::MeasurementBits {}
+    impl Sealed for device_impl::GScaleConfig {}
+    impl Sealed for device_impl::MeasurementBits {}
 }

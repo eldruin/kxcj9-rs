@@ -11,7 +11,7 @@ pub trait ScaledDevice: private::Sealed {
     fn get_wake_up_threshold<E>(threshold: f32) -> Result<u8, Error<E>>;
 }
 
-impl ScaledDevice for ic::Kxcj9_1008 {
+impl ScaledDevice for ic::G8Device {
     fn get_scaled(
         unscaled: UnscaledMeasurement,
         bits: MeasurementBits,
@@ -40,7 +40,7 @@ impl ScaledDevice for ic::Kxcj9_1008 {
     }
 }
 
-impl ScaledDevice for ic::Kxcj9_1018 {
+impl ScaledDevice for ic::G16Device {
     fn get_scaled(
         unscaled: UnscaledMeasurement,
         bits: MeasurementBits,
@@ -104,33 +104,33 @@ mod tests_scale {
         };
     }
 
-    test!(scale_1008_8b_2g, Kxcj9_1008, 127, _8bit, _0, 2.0);
-    test!(scale_1008_8b_4g, Kxcj9_1008, 127, _8bit, _1, 4.0);
-    test!(scale_1008_8b_8g, Kxcj9_1008, 127, _8bit, _2, 8.0);
+    test!(scale_1008_8b_2g, G8Device, 127, _8bit, _0, 2.0);
+    test!(scale_1008_8b_4g, G8Device, 127, _8bit, _1, 4.0);
+    test!(scale_1008_8b_8g, G8Device, 127, _8bit, _2, 8.0);
 
-    test!(scale_1008_12b_2g, Kxcj9_1008, 2047, _12bit, _0, 2.0);
-    test!(scale_1008_12b_4g, Kxcj9_1008, 2047, _12bit, _1, 4.0);
-    test!(scale_1008_12b_8g, Kxcj9_1008, 2047, _12bit, _2, 8.0);
-    test!(scale_1008_12b_8gfp, Kxcj9_1008, 2047, _12bit, _3, 8.0);
+    test!(scale_1008_12b_2g, G8Device, 2047, _12bit, _0, 2.0);
+    test!(scale_1008_12b_4g, G8Device, 2047, _12bit, _1, 4.0);
+    test!(scale_1008_12b_8g, G8Device, 2047, _12bit, _2, 8.0);
+    test!(scale_1008_12b_8gfp, G8Device, 2047, _12bit, _3, 8.0);
 
-    test!(scale_1008_14b_2g, Kxcj9_1008, 8191, _14bit, _0, 2.0);
-    test!(scale_1008_14b_4g, Kxcj9_1008, 8191, _14bit, _1, 4.0);
-    test!(scale_1008_14b_8g, Kxcj9_1008, 8191, _14bit, _2, 8.0);
-    test!(scale_1008_14b_8gfp, Kxcj9_1008, 8191, _14bit, _3, 8.0);
+    test!(scale_1008_14b_2g, G8Device, 8191, _14bit, _0, 2.0);
+    test!(scale_1008_14b_4g, G8Device, 8191, _14bit, _1, 4.0);
+    test!(scale_1008_14b_8g, G8Device, 8191, _14bit, _2, 8.0);
+    test!(scale_1008_14b_8gfp, G8Device, 8191, _14bit, _3, 8.0);
 
-    test!(scale_1018_8b_4g, Kxcj9_1018, 127, _8bit, _0, 4.0);
-    test!(scale_1018_8b_8g, Kxcj9_1018, 127, _8bit, _1, 8.0);
-    test!(scale_1018_8b_16g, Kxcj9_1018, 127, _8bit, _2, 16.0);
+    test!(scale_1018_8b_4g, G16Device, 127, _8bit, _0, 4.0);
+    test!(scale_1018_8b_8g, G16Device, 127, _8bit, _1, 8.0);
+    test!(scale_1018_8b_16g, G16Device, 127, _8bit, _2, 16.0);
 
-    test!(scale_1018_12b_4g, Kxcj9_1018, 2047, _12bit, _0, 4.0);
-    test!(scale_1018_12b_8g, Kxcj9_1018, 2047, _12bit, _1, 8.0);
-    test!(scale_1018_12b_16g, Kxcj9_1018, 2047, _12bit, _2, 16.0);
-    test!(scale_1018_12b_16gfp, Kxcj9_1018, 2047, _12bit, _3, 16.0);
+    test!(scale_1018_12b_4g, G16Device, 2047, _12bit, _0, 4.0);
+    test!(scale_1018_12b_8g, G16Device, 2047, _12bit, _1, 8.0);
+    test!(scale_1018_12b_16g, G16Device, 2047, _12bit, _2, 16.0);
+    test!(scale_1018_12b_16gfp, G16Device, 2047, _12bit, _3, 16.0);
 
-    test!(scale_1018_14b_4g, Kxcj9_1018, 8191, _14bit, _0, 4.0);
-    test!(scale_1018_14b_8g, Kxcj9_1018, 8191, _14bit, _1, 8.0);
-    test!(scale_1018_14b_16g, Kxcj9_1018, 8191, _14bit, _2, 16.0);
-    test!(scale_1018_14b_16gfp, Kxcj9_1018, 8191, _14bit, _3, 16.0);
+    test!(scale_1018_14b_4g, G16Device, 8191, _14bit, _0, 4.0);
+    test!(scale_1018_14b_8g, G16Device, 8191, _14bit, _1, 8.0);
+    test!(scale_1018_14b_16g, G16Device, 8191, _14bit, _2, 16.0);
+    test!(scale_1018_14b_16gfp, G16Device, 8191, _14bit, _3, 16.0);
 }
 
 #[cfg(test)]
@@ -155,15 +155,15 @@ mod tests_wake_up_threshold {
         };
     }
 
-    test_fail!(cannot_set_1008_too_big, Kxcj9_1008, 8.1);
-    test_fail!(cannot_set_1008_negative, Kxcj9_1008, -0.1);
-    test!(th_1008_min, Kxcj9_1008, 0.0, 0);
-    test!(th_1008_0_5, Kxcj9_1008, 0.5, 8);
-    test!(th_1008_max, Kxcj9_1008, 8.0, 128);
+    test_fail!(cannot_set_1008_too_big, G8Device, 8.1);
+    test_fail!(cannot_set_1008_negative, G8Device, -0.1);
+    test!(th_1008_min, G8Device, 0.0, 0);
+    test!(th_1008_0_5, G8Device, 0.5, 8);
+    test!(th_1008_max, G8Device, 8.0, 128);
 
-    test_fail!(cannot_set_1018_too_big, Kxcj9_1018, 16.1);
-    test_fail!(cannot_set_1018_negative, Kxcj9_1018, -0.1);
-    test!(th_1018_min, Kxcj9_1018, 0.0, 0);
-    test!(th_1018_0_5, Kxcj9_1018, 0.5, 4);
-    test!(th_1018_max, Kxcj9_1018, 16.0, 128);
+    test_fail!(cannot_set_1018_too_big, G16Device, 16.1);
+    test_fail!(cannot_set_1018_negative, G16Device, -0.1);
+    test!(th_1018_min, G16Device, 0.0, 0);
+    test!(th_1018_0_5, G16Device, 0.5, 4);
+    test!(th_1018_max, G16Device, 16.0, 128);
 }

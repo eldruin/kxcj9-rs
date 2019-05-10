@@ -226,8 +226,10 @@ impl Config {
 
 #[doc(hidden)]
 pub mod ic {
-    pub struct Kxcj9_1008(()); // Also used for KXCJB
-    pub struct Kxcj9_1018(());
+    /// Used for KXCJ9-1008 and KXCJB-1041 devices
+    pub struct G8Device(());
+    /// Used for KXCJ9-1018 devices
+    pub struct G16Device(());
 }
 
 /// KXCJ9 device driver.
@@ -254,8 +256,8 @@ mod private {
     use super::{ic, kxcj9};
     pub trait Sealed {}
 
-    impl Sealed for ic::Kxcj9_1008 {}
-    impl Sealed for ic::Kxcj9_1018 {}
+    impl Sealed for ic::G8Device {}
+    impl Sealed for ic::G16Device {}
     impl Sealed for kxcj9::GScaleConfig {}
     impl Sealed for kxcj9::MeasurementBits {}
 }

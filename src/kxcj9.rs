@@ -87,7 +87,7 @@ impl GScaleConfig {
     }
 }
 
-impl<I2C, E> Kxcj9<I2C, ic::Kxcj9_1008>
+impl<I2C, E> Kxcj9<I2C, ic::G8Device>
 where
     I2C: i2c::WriteRead<Error = E> + i2c::Write<Error = E>,
 {
@@ -114,7 +114,7 @@ where
     }
 }
 
-impl<I2C, E> Kxcj9<I2C, ic::Kxcj9_1018>
+impl<I2C, E> Kxcj9<I2C, ic::G16Device>
 where
     I2C: i2c::WriteRead<Error = E> + i2c::Write<Error = E>,
 {
@@ -513,7 +513,7 @@ where
     }
 }
 
-impl<I2C, E> Kxcj9<I2C, ic::Kxcj9_1018>
+impl<I2C, E> Kxcj9<I2C, ic::G16Device>
 where
     I2C: i2c::WriteRead<Error = E> + i2c::Write<Error = E>,
 {
@@ -535,7 +535,7 @@ where
     }
 }
 
-impl<I2C, E> Kxcj9<I2C, ic::Kxcj9_1008>
+impl<I2C, E> Kxcj9<I2C, ic::G8Device>
 where
     I2C: i2c::WriteRead<Error = E> + i2c::Write<Error = E>,
 {

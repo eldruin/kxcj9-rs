@@ -132,8 +132,8 @@ pub struct WakeUpInterruptConfig {
     /// Wake-up acceleration change threshold in G.
     ///
     /// This will be scaled internally and has a maximum of 8g for
-    /// the KXCJ9-1008 device and 16g for the KXCJ9-1018 device.
-    /// This value must be positive as it seems the comparison is done
+    /// the KXCJ9-1008 and KCXJB devices and 16g for the KXCJ9-1018 device.
+    /// This value must be positive and the comparison is done
     /// for each axis separately (including negative axes)
     pub threshold: f32,
 }

@@ -61,14 +61,8 @@ impl ScaledDevice for ic::Kxcj9_1018 {
     }
 
     fn get_wake_up_threshold<E>(threshold: f32) -> Result<u8, Error<E>> {
-        // There is a mismatch in the datasheet for this model.
-        // It says that the factory value is 0.5g, which I suppose corresponds
-        // to the reset value. However, the reset value is 0b0000_1000,
-        // which is not 0.5g but 1g following the equation in the datasheet.
-        // This is all fits fine for the KXCJ9-1008 model.
-        // I do not have one of these devices at hand to try this so I just
-        // apply the equation provided and suppose that either the reset value
-        // is wrong and should be 0b0000_0100 or the reset value corresponds to 1g.
+        // There is a mismatch in the datasheet for the KXCJ9-1018 model.
+        // Kionix engineers confirmed me that the reset value corresponds to 1g.
         if threshold < 0.0 || threshold > 16.0 {
             Err(Error::InvalidSetting)
         } else {

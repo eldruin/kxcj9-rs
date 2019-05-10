@@ -109,7 +109,7 @@ where
 
     /// Create new instance of the KXCJB-1041 device.
     pub fn new_kxcjb_1041(i2c: I2C, address: SlaveAddr) -> Self {
-        // If you find any difference using the KXCJB-1041, please open an issue.
+        // According to Kionix engineers, this device should behave just as the KXCJ9-1008
         Self::new_kxcj9_1008(i2c, address)
     }
 }

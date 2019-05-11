@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Enable/disable MEMS self-test function.
 - Support interrupts.
 - Support physical interrupt pin configuration.
+- Support KXCJB device.
 
 ### Changed
 - [breaking-change] Renamed constructor methods `new_1008` -> `new_kxcj9_1008`

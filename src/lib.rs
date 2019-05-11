@@ -1,5 +1,5 @@
 //! This is a platform agnostic Rust driver for the KXCJ9 and KXCJB ultra-low-power
-//! tri-axis accelerometer (up to +/-16g) using the [`embedded-hal`] traits.
+//! tri-axis accelerometers (up to +/-16g) using the [`embedded-hal`] traits.
 //!
 //! [`embedded-hal`]: https://github.com/rust-embedded/embedded-hal
 //!
@@ -232,7 +232,7 @@ pub mod ic {
     pub struct G16Device(());
 }
 
-/// KXCJ9 device driver.
+/// KXCJ9/KXCJB device driver
 #[derive(Debug)]
 pub struct Kxcj9<I2C, IC> {
     /// The concrete I²C device implementation.

@@ -162,7 +162,7 @@ where
     I2C: i2c::WriteRead<Error = E> + i2c::Write<Error = E>,
     IC: ScaledDevice,
 {
-    /// Read acceleration sensor data scaled to configured G range
+    /// Read acceleration sensor data scaled to the configured G range.
     pub fn read(&mut self) -> Result<Measurement, Error<E>> {
         let unscaled = self.read_unscaled()?;
         Ok(IC::get_scaled(
@@ -178,7 +178,7 @@ where
     I2C: i2c::WriteRead<Error = E> + i2c::Write<Error = E>,
     IC: ScaledDevice,
 {
-    /// Read unscaled acceleration sensor data
+    /// Read unscaled acceleration sensor data.
     pub fn read_unscaled(&mut self) -> Result<UnscaledMeasurement, Error<E>> {
         let mut data = [0; 6];
         self.i2c
@@ -385,13 +385,13 @@ where
         self.update_ctrl1(previous_ctrl1)
     }
 
-    /// Check if any interrupt has happened
+    /// Check if any interrupt has happened.
     pub fn has_interrupt_happened(&mut self) -> Result<bool, Error<E>> {
         let status = self.read_register(Register::STATUS)?;
         Ok((status & BitFlags::INT) != 0)
     }
 
-    /// Read interrupt source information
+    /// Read interrupt source information.
     pub fn read_interrupt_info(&mut self) -> Result<InterruptInfo, Error<E>> {
         let mut data = [0; 2];
         self.i2c
@@ -418,7 +418,7 @@ where
         self.read_register(Register::INT_REL).and(Ok(()))
     }
 
-    /// Perform software reset
+    /// Perform software reset.
     ///
     /// This method offers a non-blocking interface. While the reset is in
     /// progress and when the reset was first triggered this will
@@ -447,7 +447,7 @@ where
         Ok((ctrl2 & BitFlags::SRST) == 0)
     }
 
-    /// Perform a digital communication self-test
+    /// Perform a digital communication self-test.
     pub fn communication_self_test(&mut self) -> Result<(), Error<E>> {
         let resp = self.read_register(Register::DCST_RESP)?;
         if resp != 0x55 {
@@ -470,12 +470,12 @@ where
         Ok(())
     }
 
-    /// Enable the MEMS self-test function
+    /// Enable the MEMS self-test function.
     pub fn enable_mems_self_test(&mut self) -> Result<(), Error<E>> {
         self.write_register(Register::SELF_TEST, 0xCA)
     }
 
-    /// Disable the MEMS self-test function
+    /// Disable the MEMS self-test function.
     pub fn disable_mems_self_test(&mut self) -> Result<(), Error<E>> {
         self.write_register(Register::SELF_TEST, 0)
     }
@@ -485,7 +485,7 @@ where
         Ok(data_ctrl >= 0b000_0101 && data_ctrl <= 0b000_0111)
     }
 
-    /// Ensure PC1 in CTRL1 is set to 0 before changing settings
+    /// Ensure PC1 in CTRL1 is set to 0 before changing settings.
     fn prepare_ctrl1_to_change_settings(&mut self) -> Result<(), Error<E>> {
         self.disable()
     }

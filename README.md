@@ -30,6 +30,8 @@ This driver allows you to:
     - Clear interrupts. See `clear_interrupts()`.
     - Read interrupt source information. See `read_interrupt_info()`.
 
+[Introductory blog post](https://blog.eldruin.com/kxcj9-kxcjb-tri-axis-mems-accelerator-driver-in-rust/)
+
 ## The devices
 
 The KXCJ9 is a high-performance, ultra-low-power, tri-axis accelerometer designed for mobile applications. It offers our best power performance along with an embedded wake-up feature, Fast-mode I²C and up to 14-bit resolution. The KXCJ9 sensor offers improved shock, reflow, and temperature performance, and the ASIC has internal voltage regulators that allow operation from 1.8 V to 3.6 V within the specified product performance.

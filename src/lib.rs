@@ -43,6 +43,8 @@
 //! [`clear_interrupts()`]: struct.Kxcj9.html#method.clear_interrupts
 //! [`read_interrupt_info()`]: struct.Kxcj9.html#method.read_interrupt_info
 //!
+//! [Introductory blog post](https://blog.eldruin.com/kxcj9-kxcjb-tri-axis-mems-accelerator-driver-in-rust/)
+//!
 //! ## The devices
 //!
 //! The KXCJ9 is a high-performance, ultra-low-power, tri-axis accelerometer

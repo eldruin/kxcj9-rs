@@ -215,7 +215,10 @@ where
         }
     }
 
-    /// Read the `WHO_AM_I` register. This should return `0xF`.
+    /// Read the `WHO_AM_I` register. Depending on the device this should return:
+    /// - `0x0A` for KXCJ9-1008
+    /// - `0x1D` for KXCJ9-1018
+    /// - `0x21` for KXCJB-1041
     pub fn who_am_i(&mut self) -> Result<u8, Error<E>> {
         self.read_register(Register::WHO_AM_I)
     }

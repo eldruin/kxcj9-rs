@@ -218,8 +218,9 @@ pub enum InterruptPinPolarity {
 /// Physical interrupt pin latching behavior
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum InterruptPinLatching {
-    /// Interrupt pin will transmit a single pulse with a period
-    /// of `0.03ms - 0.05ms` when triggered.
+    /// Interrupt pin will transmit a single pulse with a period of `0.03ms - 0.05ms`
+    /// when triggered, but only once. No further pulses will be transmitted until
+    /// cleared with `clear_interrupts()`.
     NonLatching,
     /// Interrupt pin stays active until cleared with `clear_interrupts()`. (default)
     Latching,

@@ -49,17 +49,17 @@ impl BitFlags {
 
 #[allow(unused)]
 pub fn new_1008(transactions: &[I2cTrans]) -> Kxcj9<I2cMock, ic::G8Device> {
-    Kxcj9::new_kxcj9_1008(I2cMock::new(&transactions), SlaveAddr::default())
+    Kxcj9::new_kxcj9_1008(I2cMock::new(transactions), SlaveAddr::default())
 }
 
 #[allow(unused)]
 pub fn new_1018(transactions: &[I2cTrans]) -> Kxcj9<I2cMock, ic::G16Device> {
-    Kxcj9::new_kxcj9_1018(I2cMock::new(&transactions), SlaveAddr::default())
+    Kxcj9::new_kxcj9_1018(I2cMock::new(transactions), SlaveAddr::default())
 }
 
 #[allow(unused)]
 pub fn new_1041(transactions: &[I2cTrans]) -> Kxcj9<I2cMock, ic::G8Device> {
-    Kxcj9::new_kxcjb_1041(I2cMock::new(&transactions), SlaveAddr::default())
+    Kxcj9::new_kxcjb_1041(I2cMock::new(transactions), SlaveAddr::default())
 }
 
 pub fn destroy<IC>(sensor: Kxcj9<I2cMock, IC>) {

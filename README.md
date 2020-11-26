@@ -2,7 +2,7 @@
 
 [![crates.io](https://img.shields.io/crates/v/kxcj9.svg)](https://crates.io/crates/kxcj9)
 [![Docs](https://docs.rs/kxcj9/badge.svg)](https://docs.rs/kxcj9)
-[![Build Status](https://travis-ci.org/eldruin/kxcj9-rs.svg?branch=master)](https://travis-ci.org/eldruin/kxcj9-rs)
+[![Build Status](https://github.com/eldruin/kxcj9-rs/workflows/Build/badge.svg)](https://github.com/eldruin/kxcj9-rs/actions?query=workflow%3ABuild)
 [![Coverage Status](https://coveralls.io/repos/github/eldruin/kxcj9-rs/badge.svg?branch=master)](https://coveralls.io/github/eldruin/kxcj9-rs?branch=master)
 
 This is a platform agnostic Rust driver for the KXCJ9 and KXCJB ultra-low-power

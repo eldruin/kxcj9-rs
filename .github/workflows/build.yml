@@ -1,4 +1,4 @@
-on: 
+on:
   push:
   pull_request:
   schedule:
@@ -91,7 +91,9 @@ jobs:
         uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-    
+        env:
+          RUSTFLAGS: '' # Suggested range constructs are not supported in the current MSRV
+
   test:
     name: Tests
     runs-on: ubuntu-latest

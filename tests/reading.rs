@@ -63,7 +63,7 @@ fn can_read_unscaled_14bit() {
 
 fn assert_near_positive(a: f32, b: f32) {
     if (a - b).abs() > 0.1 {
-        panic!(format!("{} vs {}", a, b));
+        panic!("{} vs {}", a, b);
     }
 }
 
